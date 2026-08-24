@@ -1,0 +1,53 @@
+<section class="train">
+  <p class="error" *ngIf="error">{{ error }}</p>
+
+  <form (ngSubmit)="train()">
+    <div class="field">
+      <label for="model">Algorithm</label>
+      <select id="model" name="model" [(ngModel)]="selectedModel" required>
+        <option *ngFor="let m of models" [value]="m.name">
+          {{ formatModelName(m.name) }}{{ m.trained ? ' ✓ trained' : '' }}
+        </option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="testSize">Test split size</label>
+      <input
+        id="testSize"
+        name="testSize"
+        type="number"
+        step="0.05"
+        min="0.05"
+        max="0.5"
+        [(ngModel)]="testSize"
+      />
+    </div>
+
+    <button type="submit" [disabled]="training">
+      {{ training ? 'Training…' : 'Train Model' }}
+    </button>
+  </form>
+
+  <div class="result" *ngIf="result">
+    <h3>{{ formatModelName(result.model_name) }} trained successfully</h3>
+    <p class="sizes">
+      Train rows: {{ result.train_size }} &nbsp;·&nbsp; Test rows: {{ result.test_size }}
+    </p>
+    <div class="metric-cards">
+      <div class="card">
+        <span class="label">MAE</span>
+        <span class="value">{{ result.metrics.mae | number: '1.2-2' }}</span>
+      </div>
+      <div class="card">
+        <span class="label">RMSE</span>
+        <span class="value">{{ result.metrics.rmse | number: '1.2-2' }}</span>
+      </div>
+      <div class="card">
+        <span class="label">R²</span>
+        <span class="value">{{ result.metrics.r2 | number: '1.4-4' }}</span>
+      </div>
+    </div>
+    <a routerLink="/dashboard" class="dashboard-link">View plots on the Dashboard →</a>
+  </div>
+</section>

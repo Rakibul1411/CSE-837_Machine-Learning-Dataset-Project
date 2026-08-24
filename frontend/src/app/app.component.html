@@ -1,0 +1,13 @@
+<header class="app-header">
+  <h1>{{ title }}</h1>
+  <nav>
+    <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+    <a routerLink="/train" routerLinkActive="active">Train</a>
+    <a routerLink="/predict" routerLinkActive="active">Predict</a>
+    <a routerLink="/forecast" routerLinkActive="active">Forecast</a>
+  </nav>
+</header>
+
+<main>
+  <router-outlet></router-outlet>
+</main>

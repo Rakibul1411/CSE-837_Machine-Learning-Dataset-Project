@@ -1,0 +1,76 @@
+<section class="forecast">
+  <p class="error" *ngIf="error">{{ error }}</p>
+
+  <div class="panels">
+    <form class="panel" (ngSubmit)="trainAndEvaluate()">
+      <h3>Train &amp; Evaluate</h3>
+      <div class="field">
+        <label for="ts-model">Algorithm</label>
+        <select id="ts-model" name="model" [(ngModel)]="selectedModel" required>
+          <option *ngFor="let m of models" [value]="m.name">
+            {{ formatModelName(m.name) }}{{ m.trained ? ' ✓' : '' }}
+          </option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="test-horizon">Held-out months (test)</label>
+        <input
+          id="test-horizon"
+          name="testHorizon"
+          type="number"
+          min="3"
+          max="36"
+          [(ngModel)]="testHorizon"
+        />
+      </div>
+      <button type="submit" [disabled]="training">
+        {{ training ? 'Training…' : 'Train & Evaluate' }}
+      </button>
+
+      <div class="metric-cards" *ngIf="trainResult">
+        <div class="card">
+          <span class="label">MAE</span>
+          <span class="value">{{ trainResult.metrics.mae | number: '1.2-2' }}</span>
+        </div>
+        <div class="card">
+          <span class="label">RMSE</span>
+          <span class="value">{{ trainResult.metrics.rmse | number: '1.2-2' }}</span>
+        </div>
+        <div class="card">
+          <span class="label">R²</span>
+          <span class="value">{{ trainResult.metrics.r2 | number: '1.4-4' }}</span>
+        </div>
+      </div>
+    </form>
+
+    <form class="panel" (ngSubmit)="forecast()">
+      <h3>Forecast Future</h3>
+      <div class="field">
+        <label for="forecast-horizon">Months ahead</label>
+        <input
+          id="forecast-horizon"
+          name="forecastHorizon"
+          type="number"
+          min="1"
+          max="24"
+          [(ngModel)]="forecastHorizon"
+        />
+      </div>
+      <button type="submit" [disabled]="forecasting">
+        {{ forecasting ? 'Forecasting…' : 'Forecast Future' }}
+      </button>
+
+      <ul class="forecast-list" *ngIf="forecastPoints">
+        <li *ngFor="let p of forecastPoints">
+          <span class="date">{{ p.date }}</span>
+          <span class="value">{{ p.prediction | number: '1.0-0' }}</span>
+        </li>
+      </ul>
+    </form>
+  </div>
+
+  <figure class="plot" *ngIf="trainResult">
+    <img [src]="forecastPlotUrl" alt="Forecast vs actual" />
+    <figcaption>History, held-out actual, and forecast for {{ formatModelName(selectedModel) }}</figcaption>
+  </figure>
+</section>

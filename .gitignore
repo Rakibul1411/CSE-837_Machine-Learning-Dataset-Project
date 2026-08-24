@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+venv/
+.venv/
+
+# Generated outputs (regenerate via train.py)
+outputs/models/*.joblib
+outputs/figures/*.png
+outputs/metrics/*.json
+data/processed/*.csv
+
+# OS
+.DS_Store

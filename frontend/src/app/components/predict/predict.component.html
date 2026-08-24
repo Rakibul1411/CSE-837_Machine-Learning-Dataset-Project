@@ -1,0 +1,51 @@
+<section class="predict">
+  <p class="error" *ngIf="error">{{ error }}</p>
+
+  <form (ngSubmit)="submit()" *ngIf="options">
+    <div class="field">
+      <label for="model">Model</label>
+      <select id="model" name="model" [(ngModel)]="selectedModel" required>
+        <option *ngFor="let m of models" [value]="m.name" [disabled]="!m.trained">
+          {{ formatModelName(m.name) }}{{ m.trained ? '' : ' (not trained — go to Train page)' }}
+        </option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="unit">Police unit</label>
+      <select id="unit" name="unit" [(ngModel)]="unitName" required>
+        <option *ngFor="let u of options.unit_names" [value]="u">{{ u }}</option>
+      </select>
+      <span class="hint" *ngIf="unitType">Type: {{ unitType }}</span>
+    </div>
+
+    <div class="field">
+      <label for="year">Year</label>
+      <input
+        id="year"
+        name="year"
+        type="number"
+        [(ngModel)]="year"
+        [min]="options.year_min"
+        [max]="options.year_max + 2"
+        required
+      />
+    </div>
+
+    <div class="field">
+      <label for="month">Month</label>
+      <select id="month" name="month" [(ngModel)]="monthNumber" required>
+        <option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="m">{{ m }}</option>
+      </select>
+    </div>
+
+    <button type="submit" [disabled]="loading">
+      {{ loading ? 'Predicting…' : 'Predict Total Cases' }}
+    </button>
+  </form>
+
+  <div class="result" *ngIf="prediction !== null">
+    <span class="label">Predicted Total Cases</span>
+    <span class="value">{{ prediction | number: '1.0-0' }}</span>
+  </div>
+</section>

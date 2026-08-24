@@ -1,0 +1,38 @@
+<section class="dashboard">
+  <div class="toolbar">
+    <label for="model-select">Model</label>
+    <select id="model-select" [(ngModel)]="selectedModel" (ngModelChange)="onModelChange()">
+      <option *ngFor="let m of models" [value]="m.name" [disabled]="!m.trained">
+        {{ formatModelName(m.name) }}{{ m.trained ? '' : ' (not trained — go to Train page)' }}
+      </option>
+    </select>
+  </div>
+
+  <p class="error" *ngIf="error">{{ error }}</p>
+
+  <div class="metric-cards" *ngIf="metrics">
+    <div class="card">
+      <span class="label">MAE</span>
+      <span class="value">{{ metrics.mae | number: '1.2-2' }}</span>
+    </div>
+    <div class="card">
+      <span class="label">RMSE</span>
+      <span class="value">{{ metrics.rmse | number: '1.2-2' }}</span>
+    </div>
+    <div class="card">
+      <span class="label">R²</span>
+      <span class="value">{{ metrics.r2 | number: '1.4-4' }}</span>
+    </div>
+  </div>
+
+  <div class="figures" *ngIf="metrics">
+    <figure>
+      <img [src]="actualVsPredictedUrl" alt="Actual vs predicted" />
+      <figcaption>Actual vs Predicted</figcaption>
+    </figure>
+    <figure>
+      <img [src]="residualsUrl" alt="Residuals" />
+      <figcaption>Residuals</figcaption>
+    </figure>
+  </div>
+</section>
