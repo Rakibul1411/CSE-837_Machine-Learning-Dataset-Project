@@ -37,7 +37,7 @@ export class ForecastComponent implements OnInit, OnDestroy {
   training = false;
   forecasting = false;
   rangeForecasting = false;
-  error = '';
+  activeMode: 'train' | 'future' | 'custom' = 'custom';
 
   trainResult: TimeSeriesTrainResponse | null = null;
   forecastPoints: ForecastPoint[] | null = null;

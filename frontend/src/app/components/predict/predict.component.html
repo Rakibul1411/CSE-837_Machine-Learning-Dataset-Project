@@ -1,70 +1,106 @@
-<section class="predict">
-  <p class="error" *ngIf="error">{{ error }}</p>
-
-  <form (ngSubmit)="submit()" *ngIf="options">
-    <div class="field">
-      <label for="model">Model</label>
-      <select id="model" name="model" [(ngModel)]="selectedModel" required>
-        <option *ngFor="let m of models" [value]="m.name" [disabled]="!m.trained">
-          {{ formatModelName(m.name) }}{{ m.trained ? '' : ' (not trained — go to Train page)' }}
-        </option>
-      </select>
+<section class="predict-container">
+  <div class="page-header">
+    <div class="title-group">
+      <h2>🎯 Real-Time Crime Prediction</h2>
+      <p class="subtitle">Predict monthly crime cases for any police unit across Bangladesh</p>
     </div>
+  </div>
 
-    <div class="field">
-      <label for="unit">Police unit</label>
-      <select id="unit" name="unit" [(ngModel)]="unitName" required>
-        <option *ngFor="let u of options.unit_names" [value]="u">{{ u }}</option>
-      </select>
-      <span class="hint" *ngIf="unitType">Type: {{ unitType }}</span>
-    </div>
+  <p class="error-banner" *ngIf="error">⚠️ {{ error }}</p>
 
-    <div class="field">
-      <label for="year">Year</label>
-      <input
-        id="year"
-        name="year"
-        type="number"
-        [(ngModel)]="year"
-        [min]="options.year_min"
-        [max]="options.year_max + 2"
-        required
-      />
-    </div>
+  <div class="predict-layout" *ngIf="options">
+    <!-- Form Panel -->
+    <form (ngSubmit)="submit()" class="form-card glass-panel">
+      <h3>Prediction Input</h3>
 
-    <div class="field">
-      <label for="month">Month</label>
-      <select id="month" name="month" [(ngModel)]="monthNumber" required>
-        <option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="m">{{ m }}</option>
-      </select>
-    </div>
+      <!-- Target Selection Pill Group -->
+      <div class="field">
+        <label>Target Crime Category</label>
+        <div class="target-pills">
+          <button
+            type="button"
+            *ngFor="let opt of options.target_options || ['All Crimes', 'Total Cases']"
+            [class.active]="targetCrime === opt"
+            (click)="targetCrime = opt; prediction ? submit() : null"
+            class="target-pill"
+          >
+            {{ opt }}
+          </button>
+        </div>
+      </div>
 
-    <div class="field">
-      <label for="targetCrime">Target Crime</label>
-      <select id="targetCrime" name="targetCrime" [(ngModel)]="targetCrime">
-        <option *ngFor="let opt of options.target_options || ['All Crimes', 'Total Cases']" [value]="opt">
-          {{ opt }}
-        </option>
-      </select>
-    </div>
+      <div class="field-grid">
+        <div class="field">
+          <label for="model">Supervised Regressor</label>
+          <select id="model" name="model" [(ngModel)]="selectedModel" required>
+            <option *ngFor="let m of models" [value]="m.name" [disabled]="!m.trained">
+              {{ formatModelName(m.name) }}{{ m.trained ? ' ✓' : ' (not trained)' }}
+            </option>
+          </select>
+        </div>
 
-    <button type="submit" [disabled]="loading">
-      {{ loading ? 'Predicting…' : 'Predict Crime Numbers' }}
-    </button>
-  </form>
+        <div class="field">
+          <label for="unit">Police Unit</label>
+          <select id="unit" name="unit" [(ngModel)]="unitName" required>
+            <option *ngFor="let u of options.unit_names" [value]="u">{{ u }}</option>
+          </select>
+          <span class="hint" *ngIf="unitType">Unit Type: {{ unitType }}</span>
+        </div>
 
-  <div class="result" *ngIf="prediction !== null">
-    <div class="main-card">
-      <span class="label">Predicted {{ targetCrime === 'All Crimes' ? 'Total Cases' : targetCrime }}</span>
-      <span class="value">{{ (targetCrime === 'All Crimes' ? totalCasesPrediction : prediction) | number: '1.0-0' }}</span>
-    </div>
+        <div class="field">
+          <label for="year">Year</label>
+          <input
+            id="year"
+            name="year"
+            type="number"
+            [(ngModel)]="year"
+            [min]="options.year_min"
+            [max]="options.year_max + 5"
+            required
+          />
+        </div>
 
-    <div class="breakdown" *ngIf="targetCrime === 'All Crimes' && categoryPredictions.length">
-      <h3>Predicted Crime Numbers Breakdown</h3>
-      <div class="crime-grid">
-        <div class="crime-card" *ngFor="let item of categoryPredictions">
-          <span class="crime-name">{{ item.name }}</span>
-          <span class="crime-count">{{ item.count | number: '1.0-0' }}</span>
+        <div class="field">
+          <label for="month">Month</label>
+          <select id="month" name="month" [(ngModel)]="monthNumber" required>
+            <option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="m">Month {{ m }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" [disabled]="loading" class="btn-primary">
+          <span *ngIf="!loading">⚡ Predict Crime Cases</span>
+          <span *ngIf="loading">Predicting…</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- Results Panel -->
+    <div class="results-container" *ngIf="prediction !== null">
+      <!-- Hero Prediction Spotlight Card -->
+      <div class="hero-card glass-panel">
+        <div class="hero-header">
+          <span class="hero-badge">Model Output</span>
+          <span class="unit-badge">{{ unitName }} · {{ year }}-{{ monthNumber < 10 ? '0' + monthNumber : monthNumber }}</span>
+        </div>
+        <div class="hero-body">
+          <span class="hero-label">Predicted {{ targetCrime === 'All Crimes' ? 'Total Cases' : targetCrime }}</span>
+          <span class="hero-value">{{ (targetCrime === 'All Crimes' ? totalCasesPrediction : prediction) | number: '1.0-0' }}</span>
+        </div>
+      </div>
+
+      <!-- Breakdown Grid -->
+      <div class="breakdown-card glass-panel" *ngIf="targetCrime === 'All Crimes' &amp;&amp; categoryPredictions.length">
+        <div class="breakdown-header">
+          <h3>Predicted Crime Categories Breakdown</h3>
+          <span class="count-badge">15 Crime Types</span>
+        </div>
+        <div class="crime-grid">
+          <div class="crime-card" *ngFor="let item of categoryPredictions">
+            <span class="crime-name">{{ item.name }}</span>
+            <span class="crime-count">{{ item.count | number: '1.0-0' }}</span>
+          </div>
         </div>
       </div>
     </div>

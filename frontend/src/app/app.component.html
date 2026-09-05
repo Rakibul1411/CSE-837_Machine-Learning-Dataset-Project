@@ -1,13 +1,35 @@
-<header class="app-header">
-  <h1>{{ title }}</h1>
-  <nav>
-    <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-    <a routerLink="/train" routerLinkActive="active">Train</a>
-    <a routerLink="/predict" routerLinkActive="active">Predict</a>
-    <a routerLink="/forecast" routerLinkActive="active">Forecast</a>
-  </nav>
+<header class="app-header-container">
+  <div class="header-content">
+    <div class="brand">
+      <div class="logo-icon">🇧🇩</div>
+      <div class="brand-text">
+        <span class="brand-title">Bangladesh Crime Intel</span>
+        <span class="brand-sub">ML &amp; Time-Series Analytics</span>
+      </div>
+    </div>
+
+    <nav class="nav-pills">
+      <a routerLink="/dashboard" routerLinkActive="active">
+        <span class="nav-icon">📊</span> Dashboard
+      </a>
+      <a routerLink="/train" routerLinkActive="active">
+        <span class="nav-icon">⚡</span> Train
+      </a>
+      <a routerLink="/predict" routerLinkActive="active">
+        <span class="nav-icon">🎯</span> Predict
+      </a>
+      <a routerLink="/forecast" routerLinkActive="active">
+        <span class="nav-icon">📈</span> Forecast
+      </a>
+    </nav>
+
+    <div class="status-badge">
+      <span class="status-dot"></span>
+      <span class="status-text">API Online</span>
+    </div>
+  </div>
 </header>
 
-<main>
+<main class="main-wrapper">
   <router-outlet></router-outlet>
 </main>
