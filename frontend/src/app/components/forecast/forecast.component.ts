@@ -26,21 +26,17 @@ export class ForecastComponent implements OnInit, OnDestroy {
   models: ModelInfo[] = [];
   selectedModel = '';
   testHorizon = 12;
-  historyMonths = 24;
-  forecastHorizon = 6;
 
   startYear = 2019;
   startMonth = 1;
   endYear = 2028;
   endMonth = 12;
 
-  training = false;
+  includeEvaluation = true;
   forecasting = false;
-  rangeForecasting = false;
-  activeMode: 'train' | 'future' | 'custom' = 'custom';
+  error = '';
 
   trainResult: TimeSeriesTrainResponse | null = null;
-  forecastPoints: ForecastPoint[] | null = null;
   customRangeResult: CustomRangeForecastResponse | null = null;
 
   private chart?: Chart;
@@ -54,7 +50,7 @@ export class ForecastComponent implements OnInit, OnDestroy {
         this.models = models;
         if (models.length) {
           this.selectedModel = models[0].name;
-          this.forecastCustomRange();
+          this.generateForecast();
         }
       },
       error: () => (this.error = 'Could not reach the API. Is the backend running on port 8001?'),
@@ -76,65 +72,42 @@ export class ForecastComponent implements OnInit, OnDestroy {
     return this.api.forecastFigureUrl(this.selectedModel, this.cacheBust);
   }
 
-  get forecastRangePlotUrl(): string {
-    return this.api.forecastRangeFigureUrl(this.selectedModel, this.cacheBust);
-  }
-
-  trainAndEvaluate(): void {
-    if (!this.selectedModel) return;
-    this.training = true;
-    this.error = '';
-    this.trainResult = null;
-    this.api
-      .trainTimeSeriesModel({
-        model_name: this.selectedModel,
-        test_horizon: this.testHorizon,
-        history_months: this.historyMonths,
-      })
-      .subscribe({
-        next: (res) => {
-          this.trainResult = res;
-          this.cacheBust = Date.now();
-          this.training = false;
-        },
-        error: (err) => {
-          this.error = err?.error?.detail ?? 'Training failed.';
-          this.training = false;
-        },
-      });
-  }
-
-  forecast(): void {
-    if (!this.selectedModel) return;
-    this.forecasting = true;
-    this.error = '';
-    this.forecastPoints = null;
-    this.api
-      .forecastTimeSeries({ model_name: this.selectedModel, horizon: this.forecastHorizon })
-      .subscribe({
-        next: (res) => {
-          this.forecastPoints = res.forecast;
-          this.forecasting = false;
-        },
-        error: (err) => {
-          this.error = err?.error?.detail ?? 'Forecast failed.';
-          this.forecasting = false;
-        },
-      });
-  }
-
   validateStartYear(): void {
     if (!this.startYear || this.startYear < 2019) {
       this.startYear = 2019;
     }
   }
 
-  forecastCustomRange(): void {
+  setPresetEndYear(year: number): void {
+    this.endYear = year;
+    this.endMonth = 12;
+    this.generateForecast();
+  }
+
+  generateForecast(): void {
     if (!this.selectedModel) return;
     this.validateStartYear();
-    this.rangeForecasting = true;
+    this.forecasting = true;
     this.error = '';
     this.customRangeResult = null;
+
+    if (this.includeEvaluation) {
+      this.api
+        .trainTimeSeriesModel({
+          model_name: this.selectedModel,
+          test_horizon: this.testHorizon,
+        })
+        .subscribe({
+          next: (res) => {
+            this.trainResult = res;
+          },
+          error: () => {
+            this.trainResult = null;
+          },
+        });
+    } else {
+      this.trainResult = null;
+    }
 
     this.api
       .forecastCustomRange({
@@ -148,12 +121,12 @@ export class ForecastComponent implements OnInit, OnDestroy {
         next: (res) => {
           this.customRangeResult = res;
           this.cacheBust = Date.now();
-          this.rangeForecasting = false;
+          this.forecasting = false;
           setTimeout(() => this.renderChart(res), 50);
         },
         error: (err) => {
           this.error = err?.error?.detail ?? 'Custom range forecast failed.';
-          this.rangeForecasting = false;
+          this.forecasting = false;
         },
       });
   }

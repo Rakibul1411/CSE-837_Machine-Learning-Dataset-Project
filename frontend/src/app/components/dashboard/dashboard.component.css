@@ -27,20 +27,83 @@
   font-size: 0.9rem;
 }
 
-/* Algo Bar */
-.algo-bar {
-  padding: 1rem 1.25rem;
+/* Control & Training Panel */
+.control-panel {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.panel-section {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.algo-label {
+.section-label {
   font-size: 0.85rem;
   font-weight: 600;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.panel-divider {
+  width: 1px;
+  height: 2.5rem;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.train-controls {
+  gap: 1.25rem;
+}
+
+.split-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.split-control label {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.split-control strong {
+  color: #818cf8;
+}
+
+.range-slider {
+  accent-color: #6366f1;
+  cursor: pointer;
+  width: 120px;
+}
+
+.btn-fit {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #ffffff;
+  border: none;
+  padding: 0.6rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.btn-fit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+}
+
+.btn-fit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .algo-pills {

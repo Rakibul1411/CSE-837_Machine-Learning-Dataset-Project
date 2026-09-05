@@ -16,50 +16,28 @@
         type="button"
         *ngFor="let m of models"
         [class.active]="selectedModel === m.name"
-        (click)="selectedModel = m.name; customRangeResult ? forecastCustomRange() : null"
+        (click)="selectedModel = m.name; generateForecast()"
         class="algo-pill"
       >
         <span class="algo-name">{{ formatModelName(m.name) }}</span>
-        <span class="algo-check" *ngIf="m.trained">✓</span>
+        <span class="algo-check" *ngIf="m.trained">✓ Fit</span>
       </button>
     </div>
   </div>
 
-  <!-- Mode Switcher Tabs -->
-  <div class="mode-tabs">
-    <button
-      type="button"
-      [class.active]="activeMode === 'custom'"
-      (click)="activeMode = 'custom'"
-      class="mode-tab"
-    >
-      🗓️ Custom Range Forecast
-    </button>
-    <button
-      type="button"
-      [class.active]="activeMode === 'train'"
-      (click)="activeMode = 'train'"
-      class="mode-tab"
-    >
-      📊 Train &amp; Holdout Test
-    </button>
-    <button
-      type="button"
-      [class.active]="activeMode === 'future'"
-      (click)="activeMode = 'future'"
-      class="mode-tab"
-    >
-      📈 N-Month Quick Forecast
-    </button>
-  </div>
-
-  <!-- Mode Panels -->
+  <!-- Unified Forecast Controls Panel -->
   <div class="panel-body glass-panel">
-    <!-- Mode 1: Custom Range Forecast -->
-    <form (ngSubmit)="forecastCustomRange()" *ngIf="activeMode === 'custom'" class="mode-form">
+    <form (ngSubmit)="generateForecast()" class="mode-form">
       <div class="form-header">
-        <h3>🗓️ Custom Date Range Forecasting</h3>
-        <p class="form-sub">Predict past history and extend forecasts into future years (e.g. 2019 to 2028)</p>
+        <h3>🗓️ Projection Horizon &amp; Range Setup</h3>
+        <p class="form-sub">Project national monthly crime trends into future years with optional holdout evaluation</p>
+      </div>
+
+      <div class="preset-pills">
+        <span class="preset-label">Quick Horizon Presets:</span>
+        <button type="button" class="preset-pill" (click)="setPresetEndYear(2027)">End 2027 (+1.5 yr)</button>
+        <button type="button" class="preset-pill" (click)="setPresetEndYear(2028)">End 2028 (+2.5 yr)</button>
+        <button type="button" class="preset-pill" (click)="setPresetEndYear(2030)">End 2030 (+4.5 yr)</button>
       </div>
 
       <div class="field-grid">
@@ -76,7 +54,6 @@
                 max="2030"
                 [(ngModel)]="startYear"
                 (change)="validateStartYear()"
-                (blur)="validateStartYear()"
               />
             </div>
             <div class="field">
@@ -86,11 +63,10 @@
               </select>
             </div>
           </div>
-          <span class="hint">Dataset history begins Jan 2019</span>
         </div>
 
         <div class="field-group">
-          <label>End Date (Future Horizon)</label>
+          <label>End Date (Projection Horizon)</label>
           <div class="field-row">
             <div class="field">
               <label for="end-year">Year</label>
@@ -103,116 +79,55 @@
               </select>
             </div>
           </div>
-          <span class="hint">Projections extend after July 2026</span>
         </div>
       </div>
 
-      <div class="form-footer">
-        <button type="submit" [disabled]="rangeForecasting" class="btn-primary">
-          <span *ngIf="!rangeForecasting">⚡ Generate Range Forecast</span>
-          <span *ngIf="rangeForecasting">Calculating Projections…</span>
-        </button>
-      </div>
-    </form>
+      <div class="eval-toggle-row">
+        <label class="toggle-checkbox">
+          <input type="checkbox" [(ngModel)]="includeEvaluation" name="includeEvaluation" />
+          <span class="toggle-custom"></span>
+          <span class="toggle-text">Calculate Holdout Evaluation Metrics (MAE / RMSE / R²)</span>
+        </label>
 
-    <!-- Mode 2: Train & Holdout Evaluation -->
-    <form (ngSubmit)="trainAndEvaluate()" *ngIf="activeMode === 'train'" class="mode-form">
-      <div class="form-header">
-        <h3>📊 Train &amp; Holdout Test Split</h3>
-        <p class="form-sub">Hold out the last N months of history to evaluate accuracy metrics (MAE, RMSE, R²)</p>
-      </div>
-
-      <div class="field-row">
-        <div class="field">
-          <label for="test-horizon">Held-out Test Months</label>
+        <div class="holdout-field" *ngIf="includeEvaluation">
+          <label for="test-horizon">Holdout Months:</label>
           <input
             id="test-horizon"
             name="testHorizon"
             type="number"
             min="3"
-            max="36"
+            max="24"
             [(ngModel)]="testHorizon"
           />
         </div>
-        <div class="field">
-          <label for="history-months">Chart History Window</label>
-          <select id="history-months" name="historyMonths" [(ngModel)]="historyMonths">
-            <option [ngValue]="12">12 months (1 year)</option>
-            <option [ngValue]="24">24 months (2 years)</option>
-            <option [ngValue]="36">36 months (3 years)</option>
-            <option [ngValue]="48">48 months (4 years)</option>
-            <option [ngValue]="60">60 months (5 years)</option>
-            <option [ngValue]="0">All history (91 months)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-footer">
-        <button type="submit" [disabled]="training" class="btn-primary">
-          <span *ngIf="!training">Fit &amp; Evaluate Model</span>
-          <span *ngIf="training">Training…</span>
-        </button>
-      </div>
-
-      <div class="metric-cards" *ngIf="trainResult">
-        <div class="metric-card">
-          <span class="m-label">MAE</span>
-          <span class="m-val">{{ trainResult.metrics.mae | number: '1.2-2' }}</span>
-        </div>
-        <div class="metric-card">
-          <span class="m-label">RMSE</span>
-          <span class="m-val">{{ trainResult.metrics.rmse | number: '1.2-2' }}</span>
-        </div>
-        <div class="metric-card glow-card">
-          <span class="m-label">R² Score</span>
-          <span class="m-val">{{ trainResult.metrics.r2 | number: '1.4-4' }}</span>
-        </div>
-      </div>
-    </form>
-
-    <!-- Mode 3: N-Month Quick Forecast -->
-    <form (ngSubmit)="forecast()" *ngIf="activeMode === 'future'" class="mode-form">
-      <div class="form-header">
-        <h3>📈 Quick N-Month Future Forecast</h3>
-        <p class="form-sub">Predict national crime totals N months straight beyond current dataset end</p>
-      </div>
-
-      <div class="field">
-        <label for="forecast-horizon">Forecast Horizon (Months Ahead)</label>
-        <input
-          id="forecast-horizon"
-          name="forecastHorizon"
-          type="number"
-          min="1"
-          max="24"
-          [(ngModel)]="forecastHorizon"
-        />
       </div>
 
       <div class="form-footer">
         <button type="submit" [disabled]="forecasting" class="btn-primary">
-          <span *ngIf="!forecasting">Forecast Next {{ forecastHorizon }} Months</span>
-          <span *ngIf="forecasting">Forecasting…</span>
+          <span *ngIf="!forecasting">⚡ Generate Time-Series Forecast</span>
+          <span *ngIf="forecasting">Calculating Projections…</span>
         </button>
       </div>
-
-      <div class="forecast-table-container" *ngIf="forecastPoints">
-        <table class="forecast-table">
-          <thead>
-            <tr>
-              <th>Month</th>
-              <th>Predicted Total Cases</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let p of forecastPoints">
-              <td class="date-cell">{{ p.date }}</td>
-              <td class="val-cell">{{ p.prediction | number: '1.0-0' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </form>
+  </div>
+
+  <!-- Evaluation Metrics Bar (if toggled on) -->
+  <div class="metric-row" *ngIf="trainResult &amp;&amp; includeEvaluation">
+    <div class="metric-card glass-panel">
+      <span class="m-label">Holdout MAE</span>
+      <span class="m-val">{{ trainResult.metrics.mae | number: '1.2-2' }}</span>
+      <span class="m-sub">Mean error across {{ testHorizon }} test months</span>
+    </div>
+    <div class="metric-card glass-panel">
+      <span class="m-label">Holdout RMSE</span>
+      <span class="m-val">{{ trainResult.metrics.rmse | number: '1.2-2' }}</span>
+      <span class="m-sub">Root mean squared error</span>
+    </div>
+    <div class="metric-card glass-panel glow-card">
+      <span class="m-label">R² Score</span>
+      <span class="m-val highlight">{{ trainResult.metrics.r2 | number: '1.4-4' }}</span>
+      <span class="m-sub">Model fit accuracy score</span>
+    </div>
   </div>
 
   <!-- Interactive Chart.js Canvas Container -->
@@ -231,10 +146,4 @@
       <canvas #chartCanvas></canvas>
     </div>
   </div>
-
-  <!-- Matplotlib Static Plot Fallback -->
-  <figure class="plot-card glass-panel" *ngIf="trainResult &amp;&amp; activeMode === 'train'">
-    <img [src]="forecastPlotUrl" alt="Forecast vs actual" />
-    <figcaption>Diagnostic Holdout Chart for {{ formatModelName(selectedModel) }}</figcaption>
-  </figure>
 </section>

@@ -6,20 +6,44 @@
     </div>
   </div>
 
-  <!-- Model Selector Pills Bar -->
-  <div class="algo-bar glass-panel">
-    <span class="algo-label">Model Selection:</span>
-    <div class="algo-pills">
-      <button
-        type="button"
-        *ngFor="let m of models"
-        [class.active]="selectedModel === m.name"
-        [disabled]="!m.trained"
-        (click)="selectedModel = m.name; onModelChange()"
-        class="algo-pill"
-      >
-        <span class="algo-name">{{ formatModelName(m.name) }}</span>
-        <span class="algo-status">{{ m.trained ? '✓ Trained' : 'Not Trained' }}</span>
+  <!-- Model Selector & Training Bar -->
+  <div class="control-panel glass-panel">
+    <div class="panel-section">
+      <span class="section-label">Select Algorithm:</span>
+      <div class="algo-pills">
+        <button
+          type="button"
+          *ngFor="let m of models"
+          [class.active]="selectedModel === m.name"
+          (click)="selectedModel = m.name; onModelChange()"
+          class="algo-pill"
+        >
+          <span class="algo-name">{{ formatModelName(m.name) }}</span>
+          <span class="algo-status">{{ m.trained ? '✓ Fit' : 'Untrained' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="panel-divider"></div>
+
+    <div class="panel-section train-controls">
+      <div class="split-control">
+        <label for="testSize">Test Split: <strong>{{ testSize * 100 | number:'1.0-0' }}%</strong></label>
+        <input
+          id="testSize"
+          name="testSize"
+          type="range"
+          step="0.05"
+          min="0.1"
+          max="0.4"
+          [(ngModel)]="testSize"
+          class="range-slider"
+        />
+      </div>
+
+      <button type="button" (click)="trainModel()" [disabled]="training" class="btn-fit">
+        <span *ngIf="!training">⚡ Fit / Refit Model</span>
+        <span *ngIf="training">Training Model…</span>
       </button>
     </div>
   </div>

@@ -120,26 +120,83 @@
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
-/* Panel Body */
-.panel-body {
-  padding: 1.75rem;
-}
-
-.mode-form {
+/* Preset Pills */
+.preset-pills {
   display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
-.form-header h3 {
-  font-size: 1.2rem;
-  color: #f8fafc;
-}
-
-.form-sub {
-  font-size: 0.85rem;
+.preset-label {
+  font-size: 0.8rem;
   color: #94a3b8;
-  margin-top: 0.2rem;
+  font-weight: 600;
+}
+
+.preset-pill {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  padding: 0.35rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preset-pill:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: #6366f1;
+  color: #818cf8;
+}
+
+/* Evaluation Toggle Row */
+.eval-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: rgba(9, 13, 22, 0.4);
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  flex-wrap: wrap;
+}
+
+.toggle-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.toggle-checkbox input {
+  accent-color: #6366f1;
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+}
+
+.holdout-field {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.holdout-field label {
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+
+.holdout-field input {
+  width: 70px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85rem;
 }
 
 .field-grid {
@@ -196,6 +253,12 @@
 }
 
 /* Metrics */
+.metric-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
 .metric-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

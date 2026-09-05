@@ -16,20 +16,28 @@ export class DashboardComponent implements OnInit {
   selectedModel = '';
   metrics: Metrics | null = null;
   loading = false;
+  training = false;
+  testSize = 0.2;
   error = '';
   private cacheBust = Date.now();
 
   constructor(private api: ApiService) {}
 
   ngOnInit(): void {
+    this.refreshModels();
+  }
+
+  refreshModels(preferredModel?: string): void {
     this.api.getModels().subscribe({
       next: (models) => {
         this.models = models;
-        const trained = models.find((m) => m.trained);
-        if (trained) {
+        if (preferredModel && models.some((m) => m.name === preferredModel)) {
+          this.selectedModel = preferredModel;
+        } else if (!this.selectedModel && models.length) {
+          const trained = models.find((m) => m.trained) || models[0];
           this.selectedModel = trained.name;
-          this.loadMetrics();
         }
+        this.loadMetrics();
       },
       error: () => (this.error = 'Could not reach the API. Is the backend running on port 8001?'),
     });
@@ -51,8 +59,26 @@ export class DashboardComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.error = `No trained metrics for '${this.selectedModel}' yet.`;
+        this.error = `Model '${formatModelName(this.selectedModel)}' has not been trained yet. Adjust split ratio & click 'Fit Model'.`;
         this.loading = false;
+      },
+    });
+  }
+
+  trainModel(): void {
+    if (!this.selectedModel) return;
+    this.training = true;
+    this.error = '';
+    this.api.trainModel({ model_name: this.selectedModel, test_size: this.testSize }).subscribe({
+      next: (res) => {
+        this.training = false;
+        this.metrics = res.metrics;
+        this.cacheBust = Date.now();
+        this.refreshModels(this.selectedModel);
+      },
+      error: (err) => {
+        this.training = false;
+        this.error = err?.error?.detail ?? 'Training failed.';
       },
     });
   }
