@@ -39,13 +39,34 @@
       </select>
     </div>
 
+    <div class="field">
+      <label for="targetCrime">Target Crime</label>
+      <select id="targetCrime" name="targetCrime" [(ngModel)]="targetCrime">
+        <option *ngFor="let opt of options.target_options || ['All Crimes', 'Total Cases']" [value]="opt">
+          {{ opt }}
+        </option>
+      </select>
+    </div>
+
     <button type="submit" [disabled]="loading">
-      {{ loading ? 'Predicting…' : 'Predict Total Cases' }}
+      {{ loading ? 'Predicting…' : 'Predict Crime Numbers' }}
     </button>
   </form>
 
   <div class="result" *ngIf="prediction !== null">
-    <span class="label">Predicted Total Cases</span>
-    <span class="value">{{ prediction | number: '1.0-0' }}</span>
+    <div class="main-card">
+      <span class="label">Predicted {{ targetCrime === 'All Crimes' ? 'Total Cases' : targetCrime }}</span>
+      <span class="value">{{ (targetCrime === 'All Crimes' ? totalCasesPrediction : prediction) | number: '1.0-0' }}</span>
+    </div>
+
+    <div class="breakdown" *ngIf="targetCrime === 'All Crimes' && categoryPredictions.length">
+      <h3>Predicted Crime Numbers Breakdown</h3>
+      <div class="crime-grid">
+        <div class="crime-card" *ngFor="let item of categoryPredictions">
+          <span class="crime-name">{{ item.name }}</span>
+          <span class="crime-count">{{ item.count | number: '1.0-0' }}</span>
+        </div>
+      </div>
+    </div>
   </div>
 </section>

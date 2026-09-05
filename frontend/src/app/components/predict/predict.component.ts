@@ -19,8 +19,10 @@ export class PredictComponent implements OnInit {
   year = 2026;
   monthNumber = 1;
   unitName = '';
+  targetCrime = 'All Crimes';
 
   prediction: number | null = null;
+  predictions: Record<string, number> | null = null;
   loading = false;
   error = '';
 
@@ -48,11 +50,26 @@ export class PredictComponent implements OnInit {
     return this.options.unit_name_to_type[this.unitName] ?? '';
   }
 
+  get categoryPredictions(): { name: string; count: number }[] {
+    if (!this.predictions) return [];
+    return Object.entries(this.predictions)
+      .filter(([key]) => key !== 'Total Cases')
+      .map(([name, count]) => ({ name, count }));
+  }
+
+  get totalCasesPrediction(): number | null {
+    if (this.predictions && 'Total Cases' in this.predictions) {
+      return this.predictions['Total Cases'];
+    }
+    return this.prediction;
+  }
+
   submit(): void {
     if (!this.selectedModel || !this.unitName) return;
     this.loading = true;
     this.error = '';
     this.prediction = null;
+    this.predictions = null;
     this.api
       .predict({
         model_name: this.selectedModel,
@@ -60,10 +77,12 @@ export class PredictComponent implements OnInit {
         month_number: this.monthNumber,
         unit_name: this.unitName,
         unit_type: this.unitType,
+        target_crime: this.targetCrime,
       })
       .subscribe({
         next: (res) => {
           this.prediction = res.prediction;
+          this.predictions = res.predictions ?? null;
           this.loading = false;
         },
         error: (err) => {

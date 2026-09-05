@@ -24,10 +24,27 @@ def save_metrics(metrics: dict, model_name: str) -> None:
     path.write_text(json.dumps(metrics, indent=2))
 
 
+def _extract_1d(y_true, y_pred):
+    if hasattr(y_true, "columns") and config.TARGET_COLUMN in y_true.columns:
+        idx = list(y_true.columns).index(config.TARGET_COLUMN)
+        yt = y_true[config.TARGET_COLUMN].to_numpy()
+        if isinstance(y_pred, np.ndarray) and y_pred.ndim > 1:
+            yp = y_pred[:, idx]
+        elif hasattr(y_pred, "columns"):
+            yp = y_pred[config.TARGET_COLUMN].to_numpy()
+        else:
+            yp = np.asarray(y_pred)
+        return yt, yp
+    yt = np.asarray(y_true).ravel()
+    yp = np.asarray(y_pred).ravel()
+    return yt, yp
+
+
 def plot_predictions(y_true, y_pred, model_name: str) -> None:
+    yt, yp = _extract_1d(y_true, y_pred)
     fig, ax = plt.subplots(figsize=(6, 6))
-    ax.scatter(y_true, y_pred, alpha=0.4, s=15)
-    lims = [min(y_true.min(), y_pred.min()), max(y_true.max(), y_pred.max())]
+    ax.scatter(yt, yp, alpha=0.4, s=15)
+    lims = [min(yt.min(), yp.min()), max(yt.max(), yp.max())]
     ax.plot(lims, lims, "r--", linewidth=1, label="Perfect prediction")
     ax.set_xlabel("Actual Total Cases")
     ax.set_ylabel("Predicted Total Cases")
@@ -39,9 +56,10 @@ def plot_predictions(y_true, y_pred, model_name: str) -> None:
 
 
 def plot_residuals(y_true, y_pred, model_name: str) -> None:
-    residuals = y_true - y_pred
+    yt, yp = _extract_1d(y_true, y_pred)
+    residuals = yt - yp
     fig, ax = plt.subplots(figsize=(6, 4))
-    ax.scatter(y_pred, residuals, alpha=0.4, s=15)
+    ax.scatter(yp, residuals, alpha=0.4, s=15)
     ax.axhline(0, color="r", linestyle="--", linewidth=1)
     ax.set_xlabel("Predicted Total Cases")
     ax.set_ylabel("Residual")

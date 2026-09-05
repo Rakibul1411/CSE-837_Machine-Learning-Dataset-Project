@@ -25,14 +25,18 @@ def build_preprocessor() -> ColumnTransformer:
     )
 
 
-def get_features_and_target(df: pd.DataFrame):
+def get_features_and_target(df: pd.DataFrame, target_columns: list[str] | str | None = None):
     X = df[config.FEATURE_COLUMNS]
-    y = df[config.TARGET_COLUMN]
+    if target_columns is None:
+        target_cols = config.ALL_TARGET_COLUMNS
+    else:
+        target_cols = target_columns
+    y = df[target_cols]
     return X, y
 
 
-def split_data(df: pd.DataFrame, test_size: float | None = None):
-    X, y = get_features_and_target(df)
+def split_data(df: pd.DataFrame, test_size: float | None = None, target_columns: list[str] | str | None = None):
+    X, y = get_features_and_target(df, target_columns=target_columns)
     return train_test_split(
         X,
         y,

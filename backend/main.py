@@ -17,8 +17,14 @@ from src.data_loader import load_dataset
 from src.models import MODEL_REGISTRY
 from src.timeseries import TIMESERIES_REGISTRY
 from src.train_pipeline import train_and_evaluate
-from src.timeseries_pipeline import forecast_future, train_and_evaluate as train_and_evaluate_timeseries
+from src.timeseries_pipeline import (
+    forecast_custom_range,
+    forecast_future,
+    train_and_evaluate as train_and_evaluate_timeseries,
+)
 from backend.schemas import (
+    CustomRangeForecastRequest,
+    CustomRangeForecastResponse,
     ForecastRequest,
     ForecastResponse,
     ModelInfo,
@@ -130,7 +136,9 @@ def train_timeseries_model(request: TimeSeriesTrainRequest):
         raise HTTPException(404, f"Unknown time-series model '{request.model_name}'. Available: {available}")
 
     try:
-        result = train_and_evaluate_timeseries(request.model_name, horizon=request.test_horizon)
+        result = train_and_evaluate_timeseries(
+            request.model_name, horizon=request.test_horizon, history_months=request.history_months
+        )
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
     return TimeSeriesTrainResponse(**result)
@@ -146,6 +154,18 @@ def forecast_timeseries(request: ForecastRequest):
     return ForecastResponse(**result)
 
 
+@app.post("/api/timeseries/forecast-range", response_model=CustomRangeForecastResponse)
+def forecast_timeseries_custom_range(request: CustomRangeForecastRequest):
+    if request.model_name not in TIMESERIES_REGISTRY:
+        available = ", ".join(sorted(TIMESERIES_REGISTRY))
+        raise HTTPException(404, f"Unknown time-series model '{request.model_name}'. Available: {available}")
+
+    start_date = f"{request.start_year:04d}-{request.start_month:02d}"
+    end_date = f"{request.end_year:04d}-{request.end_month:02d}"
+    result = forecast_custom_range(request.model_name, start_date=start_date, end_date=end_date)
+    return CustomRangeForecastResponse(**result)
+
+
 @app.post("/api/predict", response_model=PredictResponse)
 def predict(request: PredictRequest):
     pipeline = get_loaded_model(request.model_name)
@@ -159,5 +179,24 @@ def predict(request: PredictRequest):
             }
         ]
     )
-    prediction = max(0.0, float(pipeline.predict(row)[0]))
-    return PredictResponse(model_name=request.model_name, prediction=prediction, input=request)
+    raw_preds = pipeline.predict(row)
+    preds_row = raw_preds[0] if raw_preds.ndim > 1 else raw_preds
+
+    predictions: dict[str, float] = {}
+    if len(preds_row) == len(config.ALL_TARGET_COLUMNS):
+        for col, val in zip(config.ALL_TARGET_COLUMNS, preds_row):
+            predictions[col] = max(0.0, float(val))
+    elif len(preds_row) == 1:
+        predictions[config.TARGET_COLUMN] = max(0.0, float(preds_row[0]))
+
+    if request.target_crime and request.target_crime in predictions:
+        main_pred = predictions[request.target_crime]
+    else:
+        main_pred = predictions.get(config.TARGET_COLUMN, max(0.0, float(preds_row[0])))
+
+    return PredictResponse(
+        model_name=request.model_name,
+        prediction=main_pred,
+        predictions=predictions,
+        input=request,
+    )
