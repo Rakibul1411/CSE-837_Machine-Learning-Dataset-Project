@@ -137,7 +137,10 @@ def train_timeseries_model(request: TimeSeriesTrainRequest):
 
     try:
         result = train_and_evaluate_timeseries(
-            request.model_name, horizon=request.test_horizon, history_months=request.history_months
+            request.model_name,
+            horizon=request.test_horizon,
+            history_months=request.history_months,
+            unit_name=request.unit_name,
         )
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
@@ -150,7 +153,7 @@ def forecast_timeseries(request: ForecastRequest):
         available = ", ".join(sorted(TIMESERIES_REGISTRY))
         raise HTTPException(404, f"Unknown time-series model '{request.model_name}'. Available: {available}")
 
-    result = forecast_future(request.model_name, horizon=request.horizon)
+    result = forecast_future(request.model_name, horizon=request.horizon, unit_name=request.unit_name)
     return ForecastResponse(**result)
 
 
@@ -162,7 +165,14 @@ def forecast_timeseries_custom_range(request: CustomRangeForecastRequest):
 
     start_date = f"{request.start_year:04d}-{request.start_month:02d}"
     end_date = f"{request.end_year:04d}-{request.end_month:02d}"
-    result = forecast_custom_range(request.model_name, start_date=start_date, end_date=end_date)
+    result = forecast_custom_range(
+        request.model_name,
+        start_date=start_date,
+        end_date=end_date,
+        unit_name=request.unit_name,
+        test_horizon=request.test_horizon,
+        include_evaluation=request.include_evaluation,
+    )
     return CustomRangeForecastResponse(**result)
 
 

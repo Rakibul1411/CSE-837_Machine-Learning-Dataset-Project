@@ -17,7 +17,7 @@ import pandas as pd
 from src import config
 from src.evaluate import compute_metrics, save_metrics
 from src.timeseries import TIMESERIES_REGISTRY
-from src.timeseries.data import get_national_frame
+from src.timeseries.data import get_unit_frame
 from src.timeseries.var_model import VAR_COLUMNS
 
 
@@ -36,16 +36,18 @@ def _run_model(model_name: str, train_frame: pd.DataFrame, horizon: int) -> np.n
     return np.asarray(forecast)
 
 
-def train_and_evaluate(model_name: str, horizon: int = 12, history_months: int = 24) -> dict:
+def train_and_evaluate(
+    model_name: str, horizon: int = 12, history_months: int = 24, unit_name: str = "Total"
+) -> dict:
     """Fit on all but the last `horizon` months, forecast that holdout, and score it."""
-    national = get_national_frame()
-    if len(national) <= horizon:
+    unit_df = get_unit_frame(unit_name)
+    if len(unit_df) <= horizon:
         raise ValueError(
-            f"Only {len(national)} months of national history available; "
+            f"Only {len(unit_df)} months of history available for '{unit_name}'; "
             f"can't hold out {horizon} months for testing."
         )
 
-    train_frame, test_frame = national.iloc[:-horizon], national.iloc[-horizon:]
+    train_frame, test_frame = unit_df.iloc[:-horizon], unit_df.iloc[-horizon:]
     forecast = _run_model(model_name, train_frame, horizon)
     actual = test_frame[config.TARGET_COLUMN]
 
@@ -61,22 +63,24 @@ def train_and_evaluate(model_name: str, horizon: int = 12, history_months: int =
 
     return {
         "model_name": model_name,
+        "unit_name": unit_name,
         "train_size": len(train_frame),
         "test_size": len(test_frame),
         "metrics": metrics,
     }
 
 
-def forecast_future(model_name: str, horizon: int = 6) -> dict:
-    """Fit on the full known history and forecast `horizon` months beyond it."""
-    national = get_national_frame()
-    forecast = _run_model(model_name, national, horizon)
+def forecast_future(model_name: str, horizon: int = 6, unit_name: str = "Total") -> dict:
+    """Fit on the full known history for unit_name and forecast `horizon` months beyond it."""
+    unit_df = get_unit_frame(unit_name)
+    forecast = _run_model(model_name, unit_df, horizon)
 
     future_dates = pd.date_range(
-        start=national.index[-1], periods=horizon + 1, freq=national.index.freq
+        start=unit_df.index[-1], periods=horizon + 1, freq=unit_df.index.freq
     )[1:]
     return {
         "model_name": model_name,
+        "unit_name": unit_name,
         "forecast": [
             {"date": d.strftime("%Y-%m"), "prediction": max(0.0, float(v))}
             for d, v in zip(future_dates, forecast)
@@ -84,18 +88,45 @@ def forecast_future(model_name: str, horizon: int = 6) -> dict:
     }
 
 
-def forecast_custom_range(model_name: str, start_date: str, end_date: str) -> dict:
-    """Fit on national history and generate forecast over a custom start/end date range."""
-    national = get_national_frame()
+def forecast_custom_range(
+    model_name: str,
+    start_date: str,
+    end_date: str,
+    unit_name: str = "Total",
+    test_horizon: int = 0,
+    include_evaluation: bool = False,
+) -> dict:
+    """Fit on history and generate forecast over custom start/end date range with optional holdout points."""
+    unit_df = get_unit_frame(unit_name)
     start_dt = pd.to_datetime(start_date + "-01")
     end_dt = pd.to_datetime(end_date + "-01")
 
-    min_hist_date = national.index[0]
-    max_hist_date = national.index[-1]
+    min_hist_date = unit_df.index[0]
+    max_hist_date = unit_df.index[-1]
 
-    # Historical Actuals in range [start_dt, max_hist_date]
+    holdout_points = []
+    if include_evaluation and test_horizon > 0 and len(unit_df) > test_horizon:
+        train_cutoff = len(unit_df) - test_horizon
+        train_frame = unit_df.iloc[:train_cutoff]
+        test_frame = unit_df.iloc[train_cutoff:]
+        holdout_forecast_vals = _run_model(model_name, train_frame, test_horizon)
+
+        for d, act, pred in zip(
+            test_frame.index, test_frame[config.TARGET_COLUMN], holdout_forecast_vals
+        ):
+            holdout_points.append({
+                "date": d.strftime("%Y-%m"),
+                "actual": float(act),
+                "prediction": max(0.0, float(pred)),
+            })
+
+        effective_history = train_frame
+    else:
+        effective_history = unit_df
+
+    # History subset (up to effective_history end)
     effective_start = max(start_dt, min_hist_date)
-    history_subset = national.loc[effective_start:max_hist_date]
+    history_subset = effective_history.loc[effective_start:]
     history_points = [
         {"date": d.strftime("%Y-%m"), "value": float(v)}
         for d, v in history_subset[config.TARGET_COLUMN].items()
@@ -104,8 +135,8 @@ def forecast_custom_range(model_name: str, start_date: str, end_date: str) -> di
     # Out-of-Sample Future Forecast (after max_hist_date up to end_dt)
     if end_dt > max_hist_date:
         horizon = (end_dt.year - max_hist_date.year) * 12 + (end_dt.month - max_hist_date.month)
-        forecast_vals = _run_model(model_name, national, horizon)
-        future_dates = pd.date_range(start=max_hist_date, periods=horizon + 1, freq=national.index.freq)[1:]
+        forecast_vals = _run_model(model_name, unit_df, horizon)
+        future_dates = pd.date_range(start=max_hist_date, periods=horizon + 1, freq=unit_df.index.freq)[1:]
         forecast_points = [
             {"date": d.strftime("%Y-%m"), "prediction": max(0.0, float(v))}
             for d, v in zip(future_dates, forecast_vals)
@@ -121,9 +152,11 @@ def forecast_custom_range(model_name: str, start_date: str, end_date: str) -> di
 
     return {
         "model_name": model_name,
+        "unit_name": unit_name,
         "start_date": start_date,
         "end_date": end_date,
         "history": history_points,
+        "holdout": holdout_points,
         "forecast": forecast_points,
     }
 
@@ -136,7 +169,7 @@ def _plot_forecast(
     hist_to_plot.plot(ax=ax, label="History", color="#4f7cff")
     actual.plot(ax=ax, label="Actual", color="#1a1a2e", marker="o")
     forecast.plot(ax=ax, label="Forecast", color="#e0752d", linestyle="--", marker="x")
-    ax.set_title(f"{model_name}: National Total Cases — Forecast vs Actual")
+    ax.set_title(f"{model_name}: Total Cases — Forecast vs Actual")
     ax.set_ylabel(config.TARGET_COLUMN)
     ax.legend()
     fig.tight_layout()
@@ -156,9 +189,10 @@ def _plot_custom_range(history: pd.Series, forecast_points: list[dict], model_na
         fc_series = pd.Series(fc_values, index=fc_dates)
         fc_series.plot(ax=ax, label="Future Forecast", color="#e0752d", linestyle="--", marker="x")
 
-    ax.set_title(f"{model_name}: National Total Cases — Custom Range Forecast")
+    ax.set_title(f"{model_name}: Total Cases — Custom Range Forecast")
     ax.set_ylabel(config.TARGET_COLUMN)
     ax.legend()
     fig.tight_layout()
     fig.savefig(config.FIGURES_DIR / f"{model_name}_forecast_range.png", dpi=150)
     plt.close(fig)
+

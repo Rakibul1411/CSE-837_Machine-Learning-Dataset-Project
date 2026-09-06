@@ -55,12 +55,14 @@ export interface TrainResponse {
 
 export interface TimeSeriesTrainRequest {
   model_name: string;
+  unit_name?: string;
   test_horizon?: number;
   history_months?: number;
 }
 
 export interface TimeSeriesTrainResponse {
   model_name: string;
+  unit_name?: string;
   train_size: number;
   test_size: number;
   metrics: Metrics;
@@ -68,6 +70,7 @@ export interface TimeSeriesTrainResponse {
 
 export interface ForecastRequest {
   model_name: string;
+  unit_name?: string;
   horizon?: number;
 }
 
@@ -81,24 +84,36 @@ export interface HistoryPoint {
   value: number;
 }
 
+export interface HoldoutPoint {
+  date: string;
+  actual: number;
+  prediction: number;
+}
+
 export interface ForecastResponse {
   model_name: string;
+  unit_name?: string;
   forecast: ForecastPoint[];
 }
 
 export interface CustomRangeForecastRequest {
   model_name: string;
+  unit_name?: string;
   start_year: number;
   start_month: number;
   end_year: number;
   end_month: number;
+  test_horizon?: number;
+  include_evaluation?: boolean;
 }
 
 export interface CustomRangeForecastResponse {
   model_name: string;
+  unit_name?: string;
   start_date: string;
   end_date: string;
   history: HistoryPoint[];
+  holdout?: HoldoutPoint[];
   forecast: ForecastPoint[];
 }
 

@@ -21,7 +21,7 @@ def train_and_evaluate(model_name: str, test_size: float | None = None) -> dict:
     pipeline.fit(X_train, y_train)
 
     y_pred = pipeline.predict(X_test)
-    metrics = evaluate(y_test, y_pred, model_name)
+    metrics = evaluate(y_test, y_pred, model_name, X_test=X_test)
 
     utils.save_model(pipeline, model_name)
 

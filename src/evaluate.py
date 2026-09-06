@@ -24,7 +24,7 @@ def save_metrics(metrics: dict, model_name: str) -> None:
     path.write_text(json.dumps(metrics, indent=2))
 
 
-def _extract_1d(y_true, y_pred):
+def _extract_1d(y_true, y_pred, X_test=None):
     if hasattr(y_true, "columns") and config.TARGET_COLUMN in y_true.columns:
         idx = list(y_true.columns).index(config.TARGET_COLUMN)
         yt = y_true[config.TARGET_COLUMN].to_numpy()
@@ -34,14 +34,24 @@ def _extract_1d(y_true, y_pred):
             yp = y_pred[config.TARGET_COLUMN].to_numpy()
         else:
             yp = np.asarray(y_pred)
-        return yt, yp
-    yt = np.asarray(y_true).ravel()
-    yp = np.asarray(y_pred).ravel()
+    else:
+        yt = np.asarray(y_true).ravel()
+        yp = np.asarray(y_pred).ravel()
+
+    if X_test is not None:
+        mask = np.ones(len(yt), dtype=bool)
+        if "unit_name" in X_test.columns:
+            mask &= (X_test["unit_name"].to_numpy() != "Total")
+        if "unit_type" in X_test.columns:
+            mask &= (X_test["unit_type"].to_numpy() != "National Total")
+        yt = yt[mask]
+        yp = yp[mask]
+
     return yt, yp
 
 
-def plot_predictions(y_true, y_pred, model_name: str) -> None:
-    yt, yp = _extract_1d(y_true, y_pred)
+def plot_predictions(y_true, y_pred, model_name: str, X_test=None) -> None:
+    yt, yp = _extract_1d(y_true, y_pred, X_test=X_test)
     fig, ax = plt.subplots(figsize=(6, 6))
     ax.scatter(yt, yp, alpha=0.4, s=15)
     lims = [min(yt.min(), yp.min()), max(yt.max(), yp.max())]
@@ -55,8 +65,8 @@ def plot_predictions(y_true, y_pred, model_name: str) -> None:
     plt.close(fig)
 
 
-def plot_residuals(y_true, y_pred, model_name: str) -> None:
-    yt, yp = _extract_1d(y_true, y_pred)
+def plot_residuals(y_true, y_pred, model_name: str, X_test=None) -> None:
+    yt, yp = _extract_1d(y_true, y_pred, X_test=X_test)
     residuals = yt - yp
     fig, ax = plt.subplots(figsize=(6, 4))
     ax.scatter(yp, residuals, alpha=0.4, s=15)
@@ -69,10 +79,11 @@ def plot_residuals(y_true, y_pred, model_name: str) -> None:
     plt.close(fig)
 
 
-def evaluate(y_true, y_pred, model_name: str) -> dict:
+def evaluate(y_true, y_pred, model_name: str, X_test=None) -> dict:
     """Compute metrics, persist them, and save diagnostic plots."""
     metrics = compute_metrics(y_true, y_pred)
     save_metrics(metrics, model_name)
-    plot_predictions(y_true, y_pred, model_name)
-    plot_residuals(y_true, y_pred, model_name)
+    plot_predictions(y_true, y_pred, model_name, X_test=X_test)
+    plot_residuals(y_true, y_pred, model_name, X_test=X_test)
     return metrics
+

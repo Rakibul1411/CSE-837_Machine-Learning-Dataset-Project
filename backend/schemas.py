@@ -58,12 +58,14 @@ class TrainResponse(BaseModel):
 
 class TimeSeriesTrainRequest(BaseModel):
     model_name: str = Field(..., description="Registered time-series key, e.g. 'sarima'")
+    unit_name: str = Field("Total", description="Police unit name or 'Total' for whole nation")
     test_horizon: int = Field(12, ge=3, le=36, description="Months of history held out for evaluation")
     history_months: int = Field(24, ge=0, le=120, description="Months of history displayed on graph (0 for full history)")
 
 
 class TimeSeriesTrainResponse(BaseModel):
     model_name: str
+    unit_name: str = "Total"
     train_size: int
     test_size: int
     metrics: Metrics
@@ -71,6 +73,7 @@ class TimeSeriesTrainResponse(BaseModel):
 
 class ForecastRequest(BaseModel):
     model_name: str = Field(..., description="Registered time-series key, e.g. 'sarima'")
+    unit_name: str = Field("Total", description="Police unit name or 'Total' for whole nation")
     horizon: int = Field(6, ge=1, le=24, description="Months to forecast beyond all known data")
 
 
@@ -84,22 +87,35 @@ class HistoryPoint(BaseModel):
     value: float
 
 
+class HoldoutPoint(BaseModel):
+    date: str
+    actual: float
+    prediction: float
+
+
 class ForecastResponse(BaseModel):
     model_name: str
+    unit_name: str = "Total"
     forecast: list[ForecastPoint]
 
 
 class CustomRangeForecastRequest(BaseModel):
     model_name: str = Field(..., description="Registered time-series key, e.g. 'sarima'")
+    unit_name: str = Field("Total", description="Police unit name or 'Total' for whole nation")
     start_year: int = Field(2019, ge=2019, le=2030, description="Start year (minimum 2019, when dataset records begin)")
     start_month: int = Field(1, ge=1, le=12)
     end_year: int = Field(2028, ge=2019, le=2035)
     end_month: int = Field(12, ge=1, le=12)
+    test_horizon: int = Field(12, ge=0, le=36)
+    include_evaluation: bool = Field(False)
 
 
 class CustomRangeForecastResponse(BaseModel):
     model_name: str
+    unit_name: str = "Total"
     start_date: str
     end_date: str
     history: list[HistoryPoint]
+    holdout: list[HoldoutPoint] = Field(default_factory=list)
     forecast: list[ForecastPoint]
+

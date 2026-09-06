@@ -8,106 +8,101 @@
 
   <p class="error-banner" *ngIf="error">⚠️ {{ error }}</p>
 
-  <!-- Algorithm Selector Pills -->
-  <div class="algo-bar glass-panel">
-    <span class="algo-label">Select Model:</span>
-    <div class="algo-pills">
-      <button
-        type="button"
-        *ngFor="let m of models"
-        [class.active]="selectedModel === m.name"
-        (click)="selectedModel = m.name; generateForecast()"
-        class="algo-pill"
-      >
-        <span class="algo-name">{{ formatModelName(m.name) }}</span>
-        <span class="algo-check" *ngIf="m.trained">✓ Fit</span>
-      </button>
-    </div>
-  </div>
+  <!-- High-Density Compact Forecast Toolbar -->
+  <div class="toolbar-panel glass-panel">
+    <form (ngSubmit)="generateForecast()" class="toolbar-form">
 
-  <!-- Unified Forecast Controls Panel -->
-  <div class="panel-body glass-panel">
-    <form (ngSubmit)="generateForecast()" class="mode-form">
-      <div class="form-header">
-        <h3>🗓️ Projection Horizon &amp; Range Setup</h3>
-        <p class="form-sub">Project national monthly crime trends into future years with optional holdout evaluation</p>
-      </div>
-
-      <div class="preset-pills">
-        <span class="preset-label">Quick Horizon Presets:</span>
-        <button type="button" class="preset-pill" (click)="setPresetEndYear(2027)">End 2027 (+1.5 yr)</button>
-        <button type="button" class="preset-pill" (click)="setPresetEndYear(2028)">End 2028 (+2.5 yr)</button>
-        <button type="button" class="preset-pill" (click)="setPresetEndYear(2030)">End 2030 (+4.5 yr)</button>
-      </div>
-
-      <div class="field-grid">
-        <div class="field-group">
-          <label>Start Date</label>
-          <div class="field-row">
-            <div class="field">
-              <label for="start-year">Year</label>
-              <input
-                id="start-year"
-                name="startYear"
-                type="number"
-                min="2019"
-                max="2030"
-                [(ngModel)]="startYear"
-                (change)="validateStartYear()"
-              />
-            </div>
-            <div class="field">
-              <label for="start-month">Month</label>
-              <select id="start-month" name="startMonth" [(ngModel)]="startMonth">
-                <option *ngFor="let m of months" [value]="m">Month {{ m }}</option>
-              </select>
-            </div>
+      <!-- Row 1: Model Selector & Target Region -->
+      <div class="toolbar-row flex-row">
+        <div class="compact-group flex-1">
+          <span class="toolbar-label">Model:</span>
+          <div class="algo-pills-compact">
+            <button
+              type="button"
+              *ngFor="let m of models"
+              [class.active]="selectedModel === m.name"
+              (click)="selectedModel = m.name; generateForecast()"
+              class="algo-pill-compact"
+            >
+              <span>{{ formatModelName(m.name) }}</span>
+            </button>
           </div>
         </div>
 
-        <div class="field-group">
-          <label>End Date (Projection Horizon)</label>
-          <div class="field-row">
-            <div class="field">
-              <label for="end-year">Year</label>
-              <input id="end-year" name="endYear" type="number" min="2019" max="2035" [(ngModel)]="endYear" />
-            </div>
-            <div class="field">
-              <label for="end-month">Month</label>
-              <select id="end-month" name="endMonth" [(ngModel)]="endMonth">
-                <option *ngFor="let m of months" [value]="m">Month {{ m }}</option>
-              </select>
-            </div>
-          </div>
+        <div class="compact-group">
+          <label for="unit-select" class="toolbar-label">Target Region:</label>
+          <select
+            id="unit-select"
+            name="selectedUnit"
+            [(ngModel)]="selectedUnit"
+            (change)="generateForecast()"
+            class="compact-select"
+          >
+            <option value="Total">Whole Nation (Total Aggregate)</option>
+            <option *ngFor="let u of availableUnits" [value]="u">{{ u }}</option>
+          </select>
         </div>
       </div>
 
-      <div class="eval-toggle-row">
-        <label class="toggle-checkbox">
-          <input type="checkbox" [(ngModel)]="includeEvaluation" name="includeEvaluation" />
-          <span class="toggle-custom"></span>
-          <span class="toggle-text">Calculate Holdout Evaluation Metrics (MAE / RMSE / R²)</span>
-        </label>
-
-        <div class="holdout-field" *ngIf="includeEvaluation">
-          <label for="test-horizon">Holdout Months:</label>
+      <!-- Row 2: Date Controls, Holdout Checkbox, and Submit Button -->
+      <div class="toolbar-row flex-row wrap-row">
+        <div class="compact-inline-group">
+          <span class="toolbar-label">Start:</span>
           <input
-            id="test-horizon"
-            name="testHorizon"
             type="number"
-            min="3"
-            max="24"
-            [(ngModel)]="testHorizon"
+            min="2019"
+            max="2030"
+            [(ngModel)]="startYear"
+            name="startYear"
+            (change)="validateStartYear()"
+            class="compact-num-input"
+            title="Start Year"
           />
+          <select name="startMonth" [(ngModel)]="startMonth" class="compact-select-sm">
+            <option *ngFor="let m of months" [value]="m">M{{ m }}</option>
+          </select>
         </div>
-      </div>
 
-      <div class="form-footer">
-        <button type="submit" [disabled]="forecasting" class="btn-primary">
-          <span *ngIf="!forecasting">⚡ Generate Time-Series Forecast</span>
-          <span *ngIf="forecasting">Calculating Projections…</span>
+        <div class="compact-inline-group">
+          <span class="toolbar-label">End:</span>
+          <input
+            type="number"
+            min="2019"
+            max="2035"
+            [(ngModel)]="endYear"
+            name="endYear"
+            class="compact-num-input"
+            title="End Year"
+          />
+          <select name="endMonth" [(ngModel)]="endMonth" class="compact-select-sm">
+            <option *ngFor="let m of months" [value]="m">M{{ m }}</option>
+          </select>
+        </div>
+
+        <div class="compact-inline-group holdout-inline">
+          <label class="compact-checkbox">
+            <input type="checkbox" [(ngModel)]="includeEvaluation" name="includeEvaluation" />
+            <span>Holdout Eval</span>
+          </label>
+          <div *ngIf="includeEvaluation" class="holdout-input-wrap">
+            <span class="toolbar-sublabel">Mo:</span>
+            <input
+              type="number"
+              min="3"
+              max="24"
+              [(ngModel)]="testHorizon"
+              name="testHorizon"
+              class="compact-num-input-sm"
+            />
+          </div>
+        </div>
+
+        <button type="submit" [disabled]="forecasting" class="btn-compact-primary">
+          <span *ngIf="!forecasting">⚡ Forecast</span>
+          <span *ngIf="forecasting">Calculating…</span>
         </button>
       </div>
+
     </form>
   </div>
 
@@ -138,8 +133,11 @@
         <span class="range-badge">{{ customRangeResult.start_date }} → {{ customRangeResult.end_date }}</span>
       </div>
       <div class="chart-stats">
-        <span class="stat-pill blue">History: {{ customRangeResult.history.length }} months</span>
-        <span class="stat-pill orange">Forecast: {{ customRangeResult.forecast.length }} months</span>
+        <span class="stat-pill blue">History: {{ customRangeResult.history.length }} mo</span>
+        <span class="stat-pill purple" *ngIf="customRangeResult.holdout &amp;&amp; customRangeResult.holdout.length">
+          Holdout Evaluation: {{ customRangeResult.holdout.length }} mo
+        </span>
+        <span class="stat-pill orange">Future Forecast: {{ customRangeResult.forecast.length }} mo</span>
       </div>
     </div>
     <div class="canvas-wrapper">

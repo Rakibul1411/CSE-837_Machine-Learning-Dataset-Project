@@ -24,6 +24,8 @@ export class ForecastComponent implements OnInit, OnDestroy {
   readonly months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
   models: ModelInfo[] = [];
+  availableUnits: string[] = [];
+  selectedUnit = 'Total';
   selectedModel = '';
   testHorizon = 12;
 
@@ -45,6 +47,12 @@ export class ForecastComponent implements OnInit, OnDestroy {
   constructor(private api: ApiService) {}
 
   ngOnInit(): void {
+    this.api.getOptions().subscribe({
+      next: (opt) => {
+        this.availableUnits = opt.unit_names.filter((u) => u !== 'Total');
+      },
+    });
+
     this.api.getTimeSeriesModels().subscribe({
       next: (models) => {
         this.models = models;
@@ -78,12 +86,6 @@ export class ForecastComponent implements OnInit, OnDestroy {
     }
   }
 
-  setPresetEndYear(year: number): void {
-    this.endYear = year;
-    this.endMonth = 12;
-    this.generateForecast();
-  }
-
   generateForecast(): void {
     if (!this.selectedModel) return;
     this.validateStartYear();
@@ -95,6 +97,7 @@ export class ForecastComponent implements OnInit, OnDestroy {
       this.api
         .trainTimeSeriesModel({
           model_name: this.selectedModel,
+          unit_name: this.selectedUnit,
           test_horizon: this.testHorizon,
         })
         .subscribe({
@@ -112,10 +115,13 @@ export class ForecastComponent implements OnInit, OnDestroy {
     this.api
       .forecastCustomRange({
         model_name: this.selectedModel,
+        unit_name: this.selectedUnit,
         start_year: this.startYear,
         start_month: this.startMonth,
         end_year: this.endYear,
         end_month: this.endMonth,
+        test_horizon: this.testHorizon,
+        include_evaluation: this.includeEvaluation,
       })
       .subscribe({
         next: (res) => {
@@ -136,14 +142,72 @@ export class ForecastComponent implements OnInit, OnDestroy {
     this.destroyChart();
 
     const historyDates = res.history.map((h) => h.date);
+    const holdoutDates = (res.holdout || []).map((h) => h.date);
     const forecastDates = res.forecast.map((f) => f.date);
-    const allLabels = Array.from(new Set([...historyDates, ...forecastDates])).sort();
+    const allLabels = Array.from(new Set([...historyDates, ...holdoutDates, ...forecastDates])).sort();
 
     const historyMap = new Map(res.history.map((h) => [h.date, h.value]));
+    const holdoutActualMap = new Map((res.holdout || []).map((h) => [h.date, h.actual]));
+    const holdoutPredMap = new Map((res.holdout || []).map((h) => [h.date, h.prediction]));
     const forecastMap = new Map(res.forecast.map((f) => [f.date, f.prediction]));
 
     const historyData = allLabels.map((d) => historyMap.get(d) ?? null);
+    const holdoutActualData = allLabels.map((d) => holdoutActualMap.get(d) ?? null);
+    const holdoutPredData = allLabels.map((d) => holdoutPredMap.get(d) ?? null);
     const forecastData = allLabels.map((d) => forecastMap.get(d) ?? null);
+
+    const datasets: any[] = [
+      {
+        label: 'History (Training Data)',
+        data: historyData,
+        borderColor: '#4f7cff',
+        backgroundColor: 'rgba(79, 124, 255, 0.08)',
+        borderWidth: 2,
+        pointRadius: 3,
+        tension: 0.2,
+        fill: true,
+      },
+    ];
+
+    if (res.holdout && res.holdout.length > 0) {
+      datasets.push({
+        label: 'Holdout Actuals (Ground Truth)',
+        data: holdoutActualData,
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+        borderWidth: 2.5,
+        pointRadius: 4,
+        tension: 0.2,
+        fill: false,
+      });
+      datasets.push({
+        label: 'Holdout Predictions (Model Forecast)',
+        data: holdoutPredData,
+        borderColor: '#a855f7',
+        backgroundColor: 'rgba(168, 85, 247, 0.12)',
+        borderDash: [4, 4],
+        borderWidth: 2.5,
+        pointRadius: 5,
+        pointStyle: 'crossRot',
+        tension: 0.2,
+        fill: false,
+      });
+    }
+
+    if (res.forecast && res.forecast.length > 0) {
+      datasets.push({
+        label: 'Future Forecast',
+        data: forecastData,
+        borderColor: '#e0752d',
+        backgroundColor: 'rgba(224, 117, 45, 0.1)',
+        borderDash: [6, 6],
+        borderWidth: 2,
+        pointRadius: 4,
+        pointStyle: 'rectRot',
+        tension: 0.2,
+        fill: true,
+      });
+    }
 
     const ctx = this.chartCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
@@ -152,30 +216,7 @@ export class ForecastComponent implements OnInit, OnDestroy {
       type: 'line',
       data: {
         labels: allLabels,
-        datasets: [
-          {
-            label: 'Historical Actuals',
-            data: historyData,
-            borderColor: '#4f7cff',
-            backgroundColor: 'rgba(79, 124, 255, 0.1)',
-            borderWidth: 2,
-            pointRadius: 3,
-            tension: 0.2,
-            fill: true,
-          },
-          {
-            label: 'Future Forecast',
-            data: forecastData,
-            borderColor: '#e0752d',
-            backgroundColor: 'rgba(224, 117, 45, 0.1)',
-            borderDash: [5, 5],
-            borderWidth: 2,
-            pointRadius: 4,
-            pointStyle: 'rectRot',
-            tension: 0.2,
-            fill: true,
-          },
-        ],
+        datasets: datasets,
       },
       options: {
         responsive: true,
