@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService, ModelInfo, Options } from '../../services/api.service';
-import { formatModelName } from '../../shared/format';
+import { formatModelName, getMonthName, MONTH_OPTIONS } from '../../shared/format';
 
 @Component({
   selector: 'app-predict',
@@ -14,6 +14,8 @@ export class PredictComponent implements OnInit {
   models: ModelInfo[] = [];
   options: Options | null = null;
   readonly formatModelName = formatModelName;
+  readonly monthOptions = MONTH_OPTIONS;
+  readonly getMonthName = getMonthName;
 
   selectedModel = '';
   year = 2026;

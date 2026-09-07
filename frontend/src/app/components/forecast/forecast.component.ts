@@ -9,7 +9,7 @@ import {
   ModelInfo,
   TimeSeriesTrainResponse,
 } from '../../services/api.service';
-import { formatModelName } from '../../shared/format';
+import { formatModelName, getMonthShortName, MONTH_OPTIONS } from '../../shared/format';
 
 @Component({
   selector: 'app-forecast',
@@ -21,7 +21,7 @@ export class ForecastComponent implements OnInit, OnDestroy {
   @ViewChild('chartCanvas') chartCanvas?: ElementRef<HTMLCanvasElement>;
 
   readonly formatModelName = formatModelName;
-  readonly months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  readonly months = MONTH_OPTIONS;
 
   models: ModelInfo[] = [];
   availableUnits: string[] = [];
@@ -209,13 +209,22 @@ export class ForecastComponent implements OnInit, OnDestroy {
       });
     }
 
+    const formattedLabels = allLabels.map((d) => {
+      const parts = d.split('-');
+      if (parts.length === 2) {
+        const m = parseInt(parts[1], 10);
+        return `${getMonthShortName(m)} ${parts[0]}`;
+      }
+      return d;
+    });
+
     const ctx = this.chartCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
 
     this.chart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: allLabels,
+        labels: formattedLabels,
         datasets: datasets,
       },
       options: {
@@ -244,7 +253,7 @@ export class ForecastComponent implements OnInit, OnDestroy {
           x: {
             title: {
               display: true,
-              text: 'Month (YYYY-MM)',
+              text: 'Month',
             },
             ticks: {
               maxRotation: 45,

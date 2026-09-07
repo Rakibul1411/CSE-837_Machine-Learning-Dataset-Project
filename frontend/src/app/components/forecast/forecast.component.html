@@ -59,7 +59,7 @@
             title="Start Year"
           />
           <select name="startMonth" [(ngModel)]="startMonth" class="compact-select-sm">
-            <option *ngFor="let m of months" [value]="m">M{{ m }}</option>
+            <option *ngFor="let m of months" [value]="m.value">{{ m.shortName }}</option>
           </select>
         </div>
 
@@ -75,7 +75,7 @@
             title="End Year"
           />
           <select name="endMonth" [(ngModel)]="endMonth" class="compact-select-sm">
-            <option *ngFor="let m of months" [value]="m">M{{ m }}</option>
+            <option *ngFor="let m of months" [value]="m.value">{{ m.shortName }}</option>
           </select>
         </div>
 

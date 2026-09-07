@@ -63,7 +63,7 @@
         <div class="field">
           <label for="month">Month</label>
           <select id="month" name="month" [(ngModel)]="monthNumber" required>
-            <option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="m">Month {{ m }}</option>
+            <option *ngFor="let m of monthOptions" [value]="m.value">{{ m.name }}</option>
           </select>
         </div>
       </div>
@@ -82,7 +82,7 @@
       <div class="hero-card glass-panel">
         <div class="hero-header">
           <span class="hero-badge">Model Output</span>
-          <span class="unit-badge">{{ unitName }} · {{ year }}-{{ monthNumber < 10 ? '0' + monthNumber : monthNumber }}</span>
+          <span class="unit-badge">{{ unitName }} · {{ getMonthName(monthNumber) }} {{ year }}</span>
         </div>
         <div class="hero-body">
           <span class="hero-label">Predicted {{ targetCrime === 'All Crimes' ? 'Total Cases' : targetCrime }}</span>
