@@ -7,21 +7,19 @@
 .page-header h2 {
   font-size: 1.8rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #0f172a;
 }
 
 .subtitle {
-  color: #94a3b8;
+  color: #64748b;
   font-size: 0.92rem;
   margin-top: 0.2rem;
 }
 
 .error-banner {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #dc2626;
   padding: 0.85rem 1.25rem;
   border-radius: 12px;
   font-size: 0.9rem;
@@ -47,7 +45,7 @@
 .section-label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -55,7 +53,7 @@
 .panel-divider {
   width: 1px;
   height: 2.5rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: #e2e8f0;
 }
 
 .train-controls {
@@ -70,21 +68,21 @@
 
 .split-control label {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .split-control strong {
-  color: #818cf8;
+  color: #4f46e5;
 }
 
 .range-slider {
-  accent-color: #6366f1;
+  accent-color: #4f46e5;
   cursor: pointer;
   width: 120px;
 }
 
 .btn-fit {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
   color: #ffffff;
   border: none;
   padding: 0.6rem 1.25rem;
@@ -93,12 +91,12 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.25);
 }
 
 .btn-fit:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
 }
 
 .btn-fit:disabled {
@@ -113,9 +111,9 @@
 }
 
 .algo-pill {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #94a3b8;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
   padding: 0.5rem 1rem;
   border-radius: 10px;
   font-weight: 600;
@@ -128,16 +126,16 @@
 }
 
 .algo-pill:hover:not(:disabled) {
-  background: rgba(30, 41, 59, 0.8);
-  color: #f8fafc;
-  border-color: rgba(99, 102, 241, 0.3);
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
 }
 
 .algo-pill.active {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
-  border-color: #6366f1;
-  color: #818cf8;
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+  background: rgba(79, 70, 229, 0.08);
+  border-color: #4f46e5;
+  color: #4f46e5;
+  box-shadow: 0 0 12px rgba(79, 70, 229, 0.15);
 }
 
 .algo-status {
@@ -146,7 +144,7 @@
 }
 
 .algo-pill.active .algo-status {
-  color: #34d399;
+  color: #059669;
 }
 
 /* Metric Row */
@@ -164,25 +162,25 @@
 }
 
 .metric-card.glow-card {
-  border-color: rgba(99, 102, 241, 0.3);
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%);
+  border-color: rgba(79, 70, 229, 0.25);
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%);
 }
 
 .m-label {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: #64748b;
   font-weight: 600;
 }
 
 .m-val {
   font-size: 2.2rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: #0f172a;
   line-height: 1.1;
 }
 
 .m-val.highlight {
-  color: #38bdf8;
+  color: #0284c7;
 }
 
 .m-sub {
@@ -212,20 +210,21 @@
 
 .fig-header h3 {
   font-size: 1.1rem;
-  color: #f8fafc;
+  color: #0f172a;
 }
 
 .fig-badge {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #818cf8;
-  background: rgba(99, 102, 241, 0.15);
+  color: #4f46e5;
+  background: rgba(79, 70, 229, 0.08);
   padding: 0.25rem 0.6rem;
   border-radius: 6px;
 }
 
 .img-wrapper {
-  background: rgba(9, 13, 22, 0.5);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   overflow: hidden;
   padding: 0.5rem;
@@ -239,6 +238,6 @@
 
 figcaption {
   font-size: 0.82rem;
-  color: #94a3b8;
+  color: #64748b;
   text-align: center;
 }

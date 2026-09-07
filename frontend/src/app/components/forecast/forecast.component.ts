@@ -160,8 +160,8 @@ export class ForecastComponent implements OnInit, OnDestroy {
       {
         label: 'History (Training Data)',
         data: historyData,
-        borderColor: '#4f7cff',
-        backgroundColor: 'rgba(79, 124, 255, 0.08)',
+        borderColor: '#1f77b4',
+        backgroundColor: 'rgba(31, 119, 180, 0.1)',
         borderWidth: 2,
         pointRadius: 3,
         tension: 0.2,
@@ -173,8 +173,8 @@ export class ForecastComponent implements OnInit, OnDestroy {
       datasets.push({
         label: 'Holdout Actuals (Ground Truth)',
         data: holdoutActualData,
-        borderColor: '#10b981',
-        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+        borderColor: '#2ca02c',
+        backgroundColor: 'rgba(44, 160, 44, 0.12)',
         borderWidth: 2.5,
         pointRadius: 4,
         tension: 0.2,
@@ -183,8 +183,8 @@ export class ForecastComponent implements OnInit, OnDestroy {
       datasets.push({
         label: 'Holdout Predictions (Model Forecast)',
         data: holdoutPredData,
-        borderColor: '#a855f7',
-        backgroundColor: 'rgba(168, 85, 247, 0.12)',
+        borderColor: '#9467bd',
+        backgroundColor: 'rgba(148, 103, 189, 0.12)',
         borderDash: [4, 4],
         borderWidth: 2.5,
         pointRadius: 5,
@@ -198,10 +198,10 @@ export class ForecastComponent implements OnInit, OnDestroy {
       datasets.push({
         label: 'Future Forecast',
         data: forecastData,
-        borderColor: '#e0752d',
-        backgroundColor: 'rgba(224, 117, 45, 0.1)',
+        borderColor: '#d62728',
+        backgroundColor: 'rgba(214, 39, 40, 0.1)',
         borderDash: [6, 6],
-        borderWidth: 2,
+        borderWidth: 2.5,
         pointRadius: 4,
         pointStyle: 'rectRot',
         tension: 0.2,
@@ -237,6 +237,12 @@ export class ForecastComponent implements OnInit, OnDestroy {
         plugins: {
           legend: {
             position: 'top',
+            labels: {
+              color: '#0f172a',
+              font: {
+                weight: 'bold',
+              },
+            },
           },
           tooltip: {
             callbacks: {
@@ -254,17 +260,35 @@ export class ForecastComponent implements OnInit, OnDestroy {
             title: {
               display: true,
               text: 'Month',
+              color: '#0f172a',
+              font: {
+                weight: 'bold',
+              },
             },
             ticks: {
+              color: '#334155',
               maxRotation: 45,
               autoSkip: true,
               maxTicksLimit: 24,
+            },
+            grid: {
+              color: '#e2e8f0',
             },
           },
           y: {
             title: {
               display: true,
               text: 'Total Cases',
+              color: '#0f172a',
+              font: {
+                weight: 'bold',
+              },
+            },
+            ticks: {
+              color: '#334155',
+            },
+            grid: {
+              color: '#e2e8f0',
             },
             beginAtZero: false,
           },

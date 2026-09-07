@@ -52,30 +52,35 @@ def _extract_1d(y_true, y_pred, X_test=None):
 
 def plot_predictions(y_true, y_pred, model_name: str, X_test=None) -> None:
     yt, yp = _extract_1d(y_true, y_pred, X_test=X_test)
-    fig, ax = plt.subplots(figsize=(6, 6))
-    ax.scatter(yt, yp, alpha=0.4, s=15)
+    fig, ax = plt.subplots(figsize=(6, 6), facecolor="white")
+    ax.set_facecolor("white")
+    ax.scatter(yt, yp, alpha=0.5, s=20, color="#1f77b4", label="Predictions")
     lims = [min(yt.min(), yp.min()), max(yt.max(), yp.max())]
-    ax.plot(lims, lims, "r--", linewidth=1, label="Perfect prediction")
-    ax.set_xlabel("Actual Total Cases")
-    ax.set_ylabel("Predicted Total Cases")
-    ax.set_title(f"{model_name}: Actual vs Predicted")
-    ax.legend()
+    ax.plot(lims, lims, color="#d62728", linestyle="--", linewidth=1.5, label="Perfect Prediction")
+    ax.set_xlabel("Actual Total Cases", fontsize=10, fontweight="bold")
+    ax.set_ylabel("Predicted Total Cases", fontsize=10, fontweight="bold")
+    ax.set_title(f"{model_name}: Actual vs Predicted", fontsize=12, fontweight="bold")
+    ax.grid(True, linestyle=":", alpha=0.6, color="#cccccc")
+    ax.legend(facecolor="white", edgecolor="#cccccc")
     fig.tight_layout()
-    fig.savefig(config.FIGURES_DIR / f"{model_name}_actual_vs_predicted.png", dpi=150)
+    fig.savefig(config.FIGURES_DIR / f"{model_name}_actual_vs_predicted.png", dpi=150, facecolor="white")
     plt.close(fig)
 
 
 def plot_residuals(y_true, y_pred, model_name: str, X_test=None) -> None:
     yt, yp = _extract_1d(y_true, y_pred, X_test=X_test)
     residuals = yt - yp
-    fig, ax = plt.subplots(figsize=(6, 4))
-    ax.scatter(yp, residuals, alpha=0.4, s=15)
-    ax.axhline(0, color="r", linestyle="--", linewidth=1)
-    ax.set_xlabel("Predicted Total Cases")
-    ax.set_ylabel("Residual")
-    ax.set_title(f"{model_name}: Residual Plot")
+    fig, ax = plt.subplots(figsize=(6, 4), facecolor="white")
+    ax.set_facecolor("white")
+    ax.scatter(yp, residuals, alpha=0.5, s=20, color="#1f77b4", label="Residuals")
+    ax.axhline(0, color="#d62728", linestyle="--", linewidth=1.5, label="Zero Error")
+    ax.set_xlabel("Predicted Total Cases", fontsize=10, fontweight="bold")
+    ax.set_ylabel("Residual", fontsize=10, fontweight="bold")
+    ax.set_title(f"{model_name}: Residual Plot", fontsize=12, fontweight="bold")
+    ax.grid(True, linestyle=":", alpha=0.6, color="#cccccc")
+    ax.legend(facecolor="white", edgecolor="#cccccc")
     fig.tight_layout()
-    fig.savefig(config.FIGURES_DIR / f"{model_name}_residuals.png", dpi=150)
+    fig.savefig(config.FIGURES_DIR / f"{model_name}_residuals.png", dpi=150, facecolor="white")
     plt.close(fig)
 
 

@@ -164,35 +164,39 @@ def forecast_custom_range(
 def _plot_forecast(
     history: pd.Series, actual: pd.Series, forecast: pd.Series, model_name: str, history_months: int = 24
 ) -> None:
-    fig, ax = plt.subplots(figsize=(8, 4.5))
+    fig, ax = plt.subplots(figsize=(8, 4.5), facecolor="white")
+    ax.set_facecolor("white")
     hist_to_plot = history.tail(history_months) if history_months and history_months > 0 else history
-    hist_to_plot.plot(ax=ax, label="History", color="#4f7cff")
-    actual.plot(ax=ax, label="Actual", color="#1a1a2e", marker="o")
-    forecast.plot(ax=ax, label="Forecast", color="#e0752d", linestyle="--", marker="x")
-    ax.set_title(f"{model_name}: Total Cases — Forecast vs Actual")
-    ax.set_ylabel(config.TARGET_COLUMN)
-    ax.legend()
+    hist_to_plot.plot(ax=ax, label="History", color="#1f77b4", linewidth=2)
+    actual.plot(ax=ax, label="Actual Ground Truth", color="#2ca02c", marker="o", linewidth=2)
+    forecast.plot(ax=ax, label="Forecast", color="#d62728", linestyle="--", marker="x", linewidth=2)
+    ax.set_title(f"{model_name}: Total Cases — Forecast vs Actual", fontsize=12, fontweight="bold")
+    ax.set_ylabel(config.TARGET_COLUMN, fontsize=10, fontweight="bold")
+    ax.grid(True, linestyle=":", alpha=0.6, color="#cccccc")
+    ax.legend(facecolor="white", edgecolor="#cccccc")
     fig.tight_layout()
-    fig.savefig(config.FIGURES_DIR / f"{model_name}_forecast.png", dpi=150)
+    fig.savefig(config.FIGURES_DIR / f"{model_name}_forecast.png", dpi=150, facecolor="white")
     plt.close(fig)
 
 
 def _plot_custom_range(history: pd.Series, forecast_points: list[dict], model_name: str) -> None:
     n_points = len(history) + len(forecast_points)
     fig_width = max(8.0, min(24.0, n_points * 0.15))
-    fig, ax = plt.subplots(figsize=(fig_width, 4.5))
-    history.plot(ax=ax, label="History", color="#4f7cff", marker="o", markersize=3)
+    fig, ax = plt.subplots(figsize=(fig_width, 4.5), facecolor="white")
+    ax.set_facecolor("white")
+    history.plot(ax=ax, label="History", color="#1f77b4", marker="o", markersize=3, linewidth=2)
 
     if forecast_points:
         fc_dates = pd.to_datetime([p["date"] + "-01" for p in forecast_points])
         fc_values = [p["prediction"] for p in forecast_points]
         fc_series = pd.Series(fc_values, index=fc_dates)
-        fc_series.plot(ax=ax, label="Future Forecast", color="#e0752d", linestyle="--", marker="x")
+        fc_series.plot(ax=ax, label="Future Forecast", color="#d62728", linestyle="--", marker="x", linewidth=2)
 
-    ax.set_title(f"{model_name}: Total Cases — Custom Range Forecast")
-    ax.set_ylabel(config.TARGET_COLUMN)
-    ax.legend()
+    ax.set_title(f"{model_name}: Total Cases — Custom Range Forecast", fontsize=12, fontweight="bold")
+    ax.set_ylabel(config.TARGET_COLUMN, fontsize=10, fontweight="bold")
+    ax.grid(True, linestyle=":", alpha=0.6, color="#cccccc")
+    ax.legend(facecolor="white", edgecolor="#cccccc")
     fig.tight_layout()
-    fig.savefig(config.FIGURES_DIR / f"{model_name}_forecast_range.png", dpi=150)
+    fig.savefig(config.FIGURES_DIR / f"{model_name}_forecast_range.png", dpi=150, facecolor="white")
     plt.close(fig)
 

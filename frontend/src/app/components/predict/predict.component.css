@@ -7,21 +7,19 @@
 .page-header h2 {
   font-size: 1.8rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #0f172a;
 }
 
 .subtitle {
-  color: #94a3b8;
+  color: #64748b;
   font-size: 0.92rem;
   margin-top: 0.2rem;
 }
 
 .error-banner {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #dc2626;
   padding: 0.85rem 1.25rem;
   border-radius: 12px;
   font-size: 0.9rem;
@@ -42,7 +40,7 @@
 
 .form-card h3 {
   font-size: 1.2rem;
-  color: #f8fafc;
+  color: #0f172a;
 }
 
 /* Target Pills */
@@ -54,9 +52,9 @@
 }
 
 .target-pill {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #94a3b8;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
   padding: 0.4rem 0.85rem;
   border-radius: 8px;
   font-size: 0.82rem;
@@ -66,16 +64,16 @@
 }
 
 .target-pill:hover {
-  background: rgba(30, 41, 59, 0.8);
-  color: #f8fafc;
-  border-color: rgba(99, 102, 241, 0.3);
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
 }
 
 .target-pill.active {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
   color: white;
   border-color: transparent;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
 .field-grid {
@@ -92,7 +90,7 @@
 
 .field label {
   font-size: 0.82rem;
-  color: #94a3b8;
+  color: #64748b;
   font-weight: 600;
 }
 
@@ -116,8 +114,8 @@
 /* Hero Card */
 .hero-card {
   padding: 1.75rem;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.06) 0%, rgba(124, 58, 237, 0.06) 100%);
+  border: 1px solid rgba(79, 70, 229, 0.2);
   position: relative;
   overflow: hidden;
 }
@@ -129,7 +127,7 @@
   right: 0;
   width: 200px;
   height: 200px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.1) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -144,16 +142,16 @@
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: #818cf8;
+  color: #4f46e5;
   letter-spacing: 0.05em;
-  background: rgba(99, 102, 241, 0.15);
+  background: rgba(79, 70, 229, 0.08);
   padding: 0.25rem 0.65rem;
   border-radius: 6px;
 }
 
 .unit-badge {
   font-size: 0.85rem;
-  color: #cbd5e1;
+  color: #475569;
   font-weight: 600;
 }
 
@@ -165,14 +163,14 @@
 
 .hero-label {
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: #64748b;
   font-weight: 600;
 }
 
 .hero-value {
   font-size: 3rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: #0f172a;
   line-height: 1;
 }
 
@@ -192,14 +190,14 @@
 
 .breakdown-header h3 {
   font-size: 1.1rem;
-  color: #f8fafc;
+  color: #0f172a;
 }
 
 .count-badge {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.15);
+  color: #0284c7;
+  background: rgba(2, 132, 199, 0.1);
   padding: 0.25rem 0.65rem;
   border-radius: 6px;
 }
@@ -211,8 +209,8 @@
 }
 
 .crime-card {
-  background: rgba(9, 13, 22, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 1rem;
   display: flex;
@@ -223,18 +221,18 @@
 
 .crime-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border-color: #4f46e5;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.06);
 }
 
 .crime-name {
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: #64748b;
   font-weight: 600;
 }
 
 .crime-count {
   font-size: 1.4rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: #0f172a;
 }
