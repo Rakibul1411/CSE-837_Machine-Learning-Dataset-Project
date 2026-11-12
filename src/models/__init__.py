@@ -7,10 +7,12 @@ returns a fresh, unfitted sklearn estimator. To add a new algorithm:
   2. Import it below and add it to MODEL_REGISTRY.
   3. Train it via `python train.py --model <name>` or the "Train" page in the UI.
 """
+from src.models.gradient_boosting import build_model as build_gradient_boosting
 from src.models.linear_regression import build_model as build_linear_regression
 from src.models.random_forest import build_model as build_random_forest
 
 MODEL_REGISTRY = {
+    "gradient_boosting": build_gradient_boosting,
     "linear_regression": build_linear_regression,
     "random_forest": build_random_forest,
 }

@@ -1,76 +1,147 @@
-<section class="forecast">
-  <p class="error" *ngIf="error">{{ error }}</p>
+<section class="forecast-container">
+  <div class="page-header">
+    <div class="title-group">
+      <h2>📈 Time-Series Crime Forecasting</h2>
+      <p class="subtitle">National aggregate monthly crime trend forecasting &amp; multi-year projections</p>
+    </div>
+  </div>
 
-  <div class="panels">
-    <form class="panel" (ngSubmit)="trainAndEvaluate()">
-      <h3>Train &amp; Evaluate</h3>
-      <div class="field">
-        <label for="ts-model">Algorithm</label>
-        <select id="ts-model" name="model" [(ngModel)]="selectedModel" required>
-          <option *ngFor="let m of models" [value]="m.name">
-            {{ formatModelName(m.name) }}{{ m.trained ? ' ✓' : '' }}
-          </option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="test-horizon">Held-out months (test)</label>
-        <input
-          id="test-horizon"
-          name="testHorizon"
-          type="number"
-          min="3"
-          max="36"
-          [(ngModel)]="testHorizon"
-        />
-      </div>
-      <button type="submit" [disabled]="training">
-        {{ training ? 'Training…' : 'Train & Evaluate' }}
-      </button>
+  <p class="error-banner" *ngIf="error">⚠️ {{ error }}</p>
 
-      <div class="metric-cards" *ngIf="trainResult">
-        <div class="card">
-          <span class="label">MAE</span>
-          <span class="value">{{ trainResult.metrics.mae | number: '1.2-2' }}</span>
+  <!-- High-Density Compact Forecast Toolbar -->
+  <div class="toolbar-panel glass-panel">
+    <form (ngSubmit)="generateForecast()" class="toolbar-form">
+
+      <!-- Row 1: Model Selector & Target Region -->
+      <div class="toolbar-row flex-row">
+        <div class="compact-group flex-1">
+          <span class="toolbar-label">Model:</span>
+          <div class="algo-pills-compact">
+            <button
+              type="button"
+              *ngFor="let m of models"
+              [class.active]="selectedModel === m.name"
+              (click)="selectedModel = m.name; generateForecast()"
+              class="algo-pill-compact"
+            >
+              <span>{{ formatModelName(m.name) }}</span>
+            </button>
+          </div>
         </div>
-        <div class="card">
-          <span class="label">RMSE</span>
-          <span class="value">{{ trainResult.metrics.rmse | number: '1.2-2' }}</span>
-        </div>
-        <div class="card">
-          <span class="label">R²</span>
-          <span class="value">{{ trainResult.metrics.r2 | number: '1.4-4' }}</span>
+
+        <div class="compact-group">
+          <label for="unit-select" class="toolbar-label">Target Region:</label>
+          <select
+            id="unit-select"
+            name="selectedUnit"
+            [(ngModel)]="selectedUnit"
+            (change)="generateForecast()"
+            class="compact-select"
+          >
+            <option value="Total">Whole Nation (Total Aggregate)</option>
+            <option *ngFor="let u of availableUnits" [value]="u">{{ u }}</option>
+          </select>
         </div>
       </div>
-    </form>
 
-    <form class="panel" (ngSubmit)="forecast()">
-      <h3>Forecast Future</h3>
-      <div class="field">
-        <label for="forecast-horizon">Months ahead</label>
-        <input
-          id="forecast-horizon"
-          name="forecastHorizon"
-          type="number"
-          min="1"
-          max="24"
-          [(ngModel)]="forecastHorizon"
-        />
+      <!-- Row 2: Date Controls, Holdout Checkbox, and Submit Button -->
+      <div class="toolbar-row flex-row wrap-row">
+        <div class="compact-inline-group">
+          <span class="toolbar-label">Start:</span>
+          <input
+            type="number"
+            min="2019"
+            max="2030"
+            [(ngModel)]="startYear"
+            name="startYear"
+            (change)="validateStartYear()"
+            class="compact-num-input"
+            title="Start Year"
+          />
+          <select name="startMonth" [(ngModel)]="startMonth" class="compact-select-sm">
+            <option *ngFor="let m of months" [value]="m.value">{{ m.shortName }}</option>
+          </select>
+        </div>
+
+        <div class="compact-inline-group">
+          <span class="toolbar-label">End:</span>
+          <input
+            type="number"
+            min="2019"
+            max="2035"
+            [(ngModel)]="endYear"
+            name="endYear"
+            class="compact-num-input"
+            title="End Year"
+          />
+          <select name="endMonth" [(ngModel)]="endMonth" class="compact-select-sm">
+            <option *ngFor="let m of months" [value]="m.value">{{ m.shortName }}</option>
+          </select>
+        </div>
+
+        <div class="compact-inline-group holdout-inline">
+          <label class="compact-checkbox">
+            <input type="checkbox" [(ngModel)]="includeEvaluation" name="includeEvaluation" />
+            <span>Holdout Eval</span>
+          </label>
+          <div *ngIf="includeEvaluation" class="holdout-input-wrap">
+            <span class="toolbar-sublabel">Mo:</span>
+            <input
+              type="number"
+              min="3"
+              max="24"
+              [(ngModel)]="testHorizon"
+              name="testHorizon"
+              class="compact-num-input-sm"
+            />
+          </div>
+        </div>
+
+        <button type="submit" [disabled]="forecasting" class="btn-compact-primary">
+          <span *ngIf="!forecasting">⚡ Forecast</span>
+          <span *ngIf="forecasting">Calculating…</span>
+        </button>
       </div>
-      <button type="submit" [disabled]="forecasting">
-        {{ forecasting ? 'Forecasting…' : 'Forecast Future' }}
-      </button>
 
-      <ul class="forecast-list" *ngIf="forecastPoints">
-        <li *ngFor="let p of forecastPoints">
-          <span class="date">{{ p.date }}</span>
-          <span class="value">{{ p.prediction | number: '1.0-0' }}</span>
-        </li>
-      </ul>
     </form>
   </div>
 
-  <figure class="plot" *ngIf="trainResult">
-    <img [src]="forecastPlotUrl" alt="Forecast vs actual" />
-    <figcaption>History, held-out actual, and forecast for {{ formatModelName(selectedModel) }}</figcaption>
-  </figure>
+  <!-- Evaluation Metrics Bar (if toggled on) -->
+  <div class="metric-row" *ngIf="trainResult &amp;&amp; includeEvaluation">
+    <div class="metric-card glass-panel">
+      <span class="m-label">Holdout MAE</span>
+      <span class="m-val">{{ trainResult.metrics.mae | number: '1.2-2' }}</span>
+      <span class="m-sub">Mean error across {{ testHorizon }} test months</span>
+    </div>
+    <div class="metric-card glass-panel">
+      <span class="m-label">Holdout RMSE</span>
+      <span class="m-val">{{ trainResult.metrics.rmse | number: '1.2-2' }}</span>
+      <span class="m-sub">Root mean squared error</span>
+    </div>
+    <div class="metric-card glass-panel glow-card">
+      <span class="m-label">R² Score</span>
+      <span class="m-val highlight">{{ trainResult.metrics.r2 | number: '1.4-4' }}</span>
+      <span class="m-sub">Model fit accuracy score</span>
+    </div>
+  </div>
+
+  <!-- Interactive Chart.js Canvas Container -->
+  <div class="chart-glass-card glass-panel" *ngIf="customRangeResult">
+    <div class="chart-card-header">
+      <div class="chart-title">
+        <h3>Interactive Forecast Canvas</h3>
+        <span class="range-badge">{{ customRangeResult.start_date }} → {{ customRangeResult.end_date }}</span>
+      </div>
+      <div class="chart-stats">
+        <span class="stat-pill blue">History: {{ customRangeResult.history.length }} mo</span>
+        <span class="stat-pill purple" *ngIf="customRangeResult.holdout &amp;&amp; customRangeResult.holdout.length">
+          Holdout Evaluation: {{ customRangeResult.holdout.length }} mo
+        </span>
+        <span class="stat-pill orange">Future Forecast: {{ customRangeResult.forecast.length }} mo</span>
+      </div>
+    </div>
+    <div class="canvas-wrapper">
+      <canvas #chartCanvas></canvas>
+    </div>
+  </div>
 </section>

@@ -1,7 +1,7 @@
 """ARIMA(p,d,q): univariate forecasting with no seasonal component."""
 from statsmodels.tsa.arima.model import ARIMA
 
-ORDER = (2, 1, 2)
+ORDER = (2, 2, 2)
 
 
 def fit_forecast(train, horizon: int):

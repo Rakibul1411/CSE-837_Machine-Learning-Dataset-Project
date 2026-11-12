@@ -12,7 +12,7 @@ VAR_COLUMNS = [config.TARGET_COLUMN, "Theft", "Burglary", "Robbery"]
 
 
 def fit_forecast(train: pd.DataFrame, horizon: int):
-    fitted = VAR(train[VAR_COLUMNS]).fit(maxlags=6, ic="aic")
+    fitted = VAR(train[VAR_COLUMNS]).fit(maxlags=4)
     lag_order = max(fitted.k_ar, 1)
     forecast_values = fitted.forecast(train[VAR_COLUMNS].to_numpy()[-lag_order:], steps=horizon)
     forecast_df = pd.DataFrame(forecast_values, columns=VAR_COLUMNS)

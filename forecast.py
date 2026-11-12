@@ -28,6 +28,12 @@ def parse_args():
         help="Months of national history held out for evaluation.",
     )
     parser.add_argument(
+        "--history-months",
+        type=int,
+        default=24,
+        help="Months of historical trend to display on graph (0 for full history).",
+    )
+    parser.add_argument(
         "--forecast-horizon",
         type=int,
         default=6,
@@ -39,7 +45,7 @@ def parse_args():
 def main():
     args = parse_args()
 
-    result = train_and_evaluate(args.model, horizon=args.test_horizon)
+    result = train_and_evaluate(args.model, horizon=args.test_horizon, history_months=args.history_months)
     print(f"Model: {result['model_name']}")
     print(f"Train months: {result['train_size']}  Test months: {result['test_size']}")
     for key, value in result["metrics"].items():

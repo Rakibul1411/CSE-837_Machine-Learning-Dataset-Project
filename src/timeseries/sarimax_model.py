@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
-ORDER = (1, 1, 1)
-SEASONAL_ORDER = (1, 1, 1, 12)
+ORDER = (0, 1, 1)
+SEASONAL_ORDER = (0, 1, 1, 12)
 
 
 def _fourier_terms(index: pd.DatetimeIndex) -> pd.DataFrame:

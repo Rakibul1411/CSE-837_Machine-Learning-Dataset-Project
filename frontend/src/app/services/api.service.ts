@@ -21,6 +21,8 @@ export interface Options {
   year_min: number;
   year_max: number;
   target_column: string;
+  crime_categories?: string[];
+  target_options?: string[];
 }
 
 export interface PredictRequest {
@@ -29,11 +31,13 @@ export interface PredictRequest {
   month_number: number;
   unit_name: string;
   unit_type: string;
+  target_crime?: string;
 }
 
 export interface PredictResponse {
   model_name: string;
   prediction: number;
+  predictions?: Record<string, number>;
   input: PredictRequest;
 }
 
@@ -51,11 +55,14 @@ export interface TrainResponse {
 
 export interface TimeSeriesTrainRequest {
   model_name: string;
+  unit_name?: string;
   test_horizon?: number;
+  history_months?: number;
 }
 
 export interface TimeSeriesTrainResponse {
   model_name: string;
+  unit_name?: string;
   train_size: number;
   test_size: number;
   metrics: Metrics;
@@ -63,6 +70,7 @@ export interface TimeSeriesTrainResponse {
 
 export interface ForecastRequest {
   model_name: string;
+  unit_name?: string;
   horizon?: number;
 }
 
@@ -71,8 +79,41 @@ export interface ForecastPoint {
   prediction: number;
 }
 
+export interface HistoryPoint {
+  date: string;
+  value: number;
+}
+
+export interface HoldoutPoint {
+  date: string;
+  actual: number;
+  prediction: number;
+}
+
 export interface ForecastResponse {
   model_name: string;
+  unit_name?: string;
+  forecast: ForecastPoint[];
+}
+
+export interface CustomRangeForecastRequest {
+  model_name: string;
+  unit_name?: string;
+  start_year: number;
+  start_month: number;
+  end_year: number;
+  end_month: number;
+  test_horizon?: number;
+  include_evaluation?: boolean;
+}
+
+export interface CustomRangeForecastResponse {
+  model_name: string;
+  unit_name?: string;
+  start_date: string;
+  end_date: string;
+  history: HistoryPoint[];
+  holdout?: HoldoutPoint[];
   forecast: ForecastPoint[];
 }
 
@@ -122,8 +163,17 @@ export class ApiService {
     return this.http.post<ForecastResponse>(`${this.baseUrl}/timeseries/forecast`, request);
   }
 
+  forecastCustomRange(request: CustomRangeForecastRequest): Observable<CustomRangeForecastResponse> {
+    return this.http.post<CustomRangeForecastResponse>(`${this.baseUrl}/timeseries/forecast-range`, request);
+  }
+
   forecastFigureUrl(modelName: string, cacheBust?: number): string {
     const url = `${this.serverRoot}/figures/${modelName}_forecast.png`;
+    return cacheBust ? `${url}?t=${cacheBust}` : url;
+  }
+
+  forecastRangeFigureUrl(modelName: string, cacheBust?: number): string {
+    const url = `${this.serverRoot}/figures/${modelName}_forecast_range.png`;
     return cacheBust ? `${url}?t=${cacheBust}` : url;
   }
 }

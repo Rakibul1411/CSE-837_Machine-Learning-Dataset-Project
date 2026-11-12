@@ -1,53 +1,94 @@
-<section class="train">
-  <p class="error" *ngIf="error">{{ error }}</p>
-
-  <form (ngSubmit)="train()">
-    <div class="field">
-      <label for="model">Algorithm</label>
-      <select id="model" name="model" [(ngModel)]="selectedModel" required>
-        <option *ngFor="let m of models" [value]="m.name">
-          {{ formatModelName(m.name) }}{{ m.trained ? ' ✓ trained' : '' }}
-        </option>
-      </select>
+<section class="train-container">
+  <div class="page-header">
+    <div class="title-group">
+      <h2>⚡ Model Training Pipeline</h2>
+      <p class="subtitle">Fit multi-output machine learning models on dataset features</p>
     </div>
+  </div>
 
-    <div class="field">
-      <label for="testSize">Test split size</label>
-      <input
-        id="testSize"
-        name="testSize"
-        type="number"
-        step="0.05"
-        min="0.05"
-        max="0.5"
-        [(ngModel)]="testSize"
-      />
+  <p class="error-banner" *ngIf="error">⚠️ {{ error }}</p>
+
+  <div class="train-layout">
+    <!-- Training Form Card -->
+    <form (ngSubmit)="train()" class="form-card glass-panel">
+      <h3>Algorithm Setup</h3>
+
+      <div class="field">
+        <label>Select Algorithm</label>
+        <div class="algo-pills">
+          <button
+            type="button"
+            *ngFor="let m of models"
+            [class.active]="selectedModel === m.name"
+            (click)="selectedModel = m.name"
+            class="algo-pill"
+          >
+            <span class="algo-name">{{ formatModelName(m.name) }}</span>
+            <span class="algo-status" *ngIf="m.trained">✓ Fitted</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="split-header">
+          <label for="testSize">Train / Test Split Ratio</label>
+          <span class="split-badge">{{ (1 - testSize) * 100 | number:'1.0-0' }}% Train / {{ testSize * 100 | number:'1.0-0' }}% Test</span>
+        </div>
+        <input
+          id="testSize"
+          name="testSize"
+          type="range"
+          step="0.05"
+          min="0.1"
+          max="0.4"
+          [(ngModel)]="testSize"
+          class="range-slider"
+        />
+        <div class="split-labels">
+          <span>10% Test</span>
+          <span>20% Test (Default)</span>
+          <span>40% Test</span>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" [disabled]="training" class="btn-primary">
+          <span *ngIf="!training">⚡ Fit &amp; Train Pipeline</span>
+          <span *ngIf="training">Training Model…</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- Training Result Card -->
+    <div class="result-card glass-panel" *ngIf="result">
+      <div class="result-header">
+        <div class="result-title">
+          <h3>{{ formatModelName(result.model_name) }}</h3>
+          <span class="success-badge">✓ Training Complete</span>
+        </div>
+        <span class="rows-badge">{{ result.train_size }} Train Rows · {{ result.test_size }} Test Rows</span>
+      </div>
+
+      <div class="metric-row">
+        <div class="metric-card">
+          <span class="m-label">MAE</span>
+          <span class="m-val">{{ result.metrics.mae | number: '1.2-2' }}</span>
+        </div>
+        <div class="metric-card">
+          <span class="m-label">RMSE</span>
+          <span class="m-val">{{ result.metrics.rmse | number: '1.2-2' }}</span>
+        </div>
+        <div class="metric-card glow-card">
+          <span class="m-label">R² Score</span>
+          <span class="m-val highlight">{{ result.metrics.r2 | number: '1.4-4' }}</span>
+        </div>
+      </div>
+
+      <div class="result-footer">
+        <a routerLink="/dashboard" class="dashboard-btn">
+          View Diagnostic Plots on Dashboard →
+        </a>
+      </div>
     </div>
-
-    <button type="submit" [disabled]="training">
-      {{ training ? 'Training…' : 'Train Model' }}
-    </button>
-  </form>
-
-  <div class="result" *ngIf="result">
-    <h3>{{ formatModelName(result.model_name) }} trained successfully</h3>
-    <p class="sizes">
-      Train rows: {{ result.train_size }} &nbsp;·&nbsp; Test rows: {{ result.test_size }}
-    </p>
-    <div class="metric-cards">
-      <div class="card">
-        <span class="label">MAE</span>
-        <span class="value">{{ result.metrics.mae | number: '1.2-2' }}</span>
-      </div>
-      <div class="card">
-        <span class="label">RMSE</span>
-        <span class="value">{{ result.metrics.rmse | number: '1.2-2' }}</span>
-      </div>
-      <div class="card">
-        <span class="label">R²</span>
-        <span class="value">{{ result.metrics.r2 | number: '1.4-4' }}</span>
-      </div>
-    </div>
-    <a routerLink="/dashboard" class="dashboard-link">View plots on the Dashboard →</a>
   </div>
 </section>

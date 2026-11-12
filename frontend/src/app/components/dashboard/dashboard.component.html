@@ -1,38 +1,96 @@
-<section class="dashboard">
-  <div class="toolbar">
-    <label for="model-select">Model</label>
-    <select id="model-select" [(ngModel)]="selectedModel" (ngModelChange)="onModelChange()">
-      <option *ngFor="let m of models" [value]="m.name" [disabled]="!m.trained">
-        {{ formatModelName(m.name) }}{{ m.trained ? '' : ' (not trained — go to Train page)' }}
-      </option>
-    </select>
-  </div>
-
-  <p class="error" *ngIf="error">{{ error }}</p>
-
-  <div class="metric-cards" *ngIf="metrics">
-    <div class="card">
-      <span class="label">MAE</span>
-      <span class="value">{{ metrics.mae | number: '1.2-2' }}</span>
-    </div>
-    <div class="card">
-      <span class="label">RMSE</span>
-      <span class="value">{{ metrics.rmse | number: '1.2-2' }}</span>
-    </div>
-    <div class="card">
-      <span class="label">R²</span>
-      <span class="value">{{ metrics.r2 | number: '1.4-4' }}</span>
+<section class="dashboard-container">
+  <div class="page-header">
+    <div class="title-group">
+      <h2>📊 Model Performance &amp; Diagnostics</h2>
+      <p class="subtitle">Evaluate cross-validation regression metrics and diagnostic residual plots</p>
     </div>
   </div>
 
-  <div class="figures" *ngIf="metrics">
-    <figure>
-      <img [src]="actualVsPredictedUrl" alt="Actual vs predicted" />
-      <figcaption>Actual vs Predicted</figcaption>
+  <!-- Model Selector & Training Bar -->
+  <div class="control-panel glass-panel">
+    <div class="panel-section">
+      <span class="section-label">Select Algorithm:</span>
+      <div class="algo-pills">
+        <button
+          type="button"
+          *ngFor="let m of models"
+          [class.active]="selectedModel === m.name"
+          (click)="selectedModel = m.name; onModelChange()"
+          class="algo-pill"
+        >
+          <span class="algo-name">{{ formatModelName(m.name) }}</span>
+          <span class="algo-status">{{ m.trained ? '✓ Fit' : 'Untrained' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="panel-divider"></div>
+
+    <div class="panel-section train-controls">
+      <div class="split-control">
+        <label for="testSize">Test Split: <strong>{{ testSize * 100 | number:'1.0-0' }}%</strong></label>
+        <input
+          id="testSize"
+          name="testSize"
+          type="range"
+          step="0.05"
+          min="0.1"
+          max="0.4"
+          [(ngModel)]="testSize"
+          class="range-slider"
+        />
+      </div>
+
+      <button type="button" (click)="trainModel()" [disabled]="training" class="btn-fit">
+        <span *ngIf="!training">⚡ Fit / Refit Model</span>
+        <span *ngIf="training">Training Model…</span>
+      </button>
+    </div>
+  </div>
+
+  <p class="error-banner" *ngIf="error">⚠️ {{ error }}</p>
+
+  <!-- Metrics Highlight Row -->
+  <div class="metric-row" *ngIf="metrics">
+    <div class="metric-card glass-panel">
+      <span class="m-label">Mean Absolute Error (MAE)</span>
+      <span class="m-val">{{ metrics.mae | number: '1.2-2' }}</span>
+      <span class="m-sub">Lower is better</span>
+    </div>
+    <div class="metric-card glass-panel">
+      <span class="m-label">Root Mean Sq. Error (RMSE)</span>
+      <span class="m-val">{{ metrics.rmse | number: '1.2-2' }}</span>
+      <span class="m-sub">Standard deviation of residuals</span>
+    </div>
+    <div class="metric-card glass-panel glow-card">
+      <span class="m-label">R² Score (Goodness of Fit)</span>
+      <span class="m-val highlight">{{ metrics.r2 | number: '1.4-4' }}</span>
+      <span class="m-sub">Variance explained (max 1.0)</span>
+    </div>
+  </div>
+
+  <!-- Diagnostic Figures Grid -->
+  <div class="figures-grid" *ngIf="metrics">
+    <figure class="figure-card glass-panel">
+      <div class="fig-header">
+        <h3>Actual vs Predicted</h3>
+        <span class="fig-badge">Scatter Plot</span>
+      </div>
+      <div class="img-wrapper">
+        <img [src]="actualVsPredictedUrl" alt="Actual vs predicted plot" />
+      </div>
+      <figcaption>Scatter plot comparing actual total crime cases against model predictions</figcaption>
     </figure>
-    <figure>
-      <img [src]="residualsUrl" alt="Residuals" />
-      <figcaption>Residuals</figcaption>
+
+    <figure class="figure-card glass-panel">
+      <div class="fig-header">
+        <h3>Residual Analysis</h3>
+        <span class="fig-badge">Error Distribution</span>
+      </div>
+      <div class="img-wrapper">
+        <img [src]="residualsUrl" alt="Residual plot" />
+      </div>
+      <figcaption>Residual error plot evaluating homoscedasticity and variance uniformity</figcaption>
     </figure>
   </div>
 </section>

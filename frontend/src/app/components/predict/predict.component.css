@@ -1,25 +1,85 @@
-.predict {
+.predict-container {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.error {
-  color: #b3261e;
-  background: #fdecea;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
+.page-header h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #0f172a;
 }
 
-form {
-  background: white;
-  border-radius: 10px;
-  padding: 1.5rem;
+.subtitle {
+  color: #64748b;
+  font-size: 0.92rem;
+  margin-top: 0.2rem;
+}
+
+.error-banner {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #dc2626;
+  padding: 0.85rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+.predict-layout {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  max-width: 420px;
+  gap: 1.5rem;
+}
+
+.form-card {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-card h3 {
+  font-size: 1.2rem;
+  color: #0f172a;
+}
+
+/* Target Pills */
+.target-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.target-pill {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.target-pill:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.target-pill.active {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
 }
 
 .field {
@@ -29,58 +89,150 @@ form {
 }
 
 .field label {
-  font-size: 0.85rem;
-  color: #6b7089;
-  font-weight: 500;
-}
-
-.field select,
-.field input {
-  padding: 0.5rem 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #d0d3e0;
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 600;
 }
 
 .hint {
   font-size: 0.78rem;
-  color: #8a8fa8;
+  color: #64748b;
 }
 
-button {
-  padding: 0.65rem 1rem;
-  border: none;
-  border-radius: 6px;
-  background: #4f7cff;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
-button:disabled {
-  background: #a9bdf5;
-  cursor: not-allowed;
-}
-
-.result {
-  background: white;
-  border-radius: 10px;
-  padding: 1.5rem;
+/* Results Container */
+.results-container {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  max-width: 420px;
+  gap: 1.5rem;
 }
 
-.result .label {
-  font-size: 0.8rem;
-  color: #6b7089;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+/* Hero Card */
+.hero-card {
+  padding: 1.75rem;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.06) 0%, rgba(124, 58, 237, 0.06) 100%);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  position: relative;
+  overflow: hidden;
 }
 
-.result .value {
-  font-size: 2.2rem;
+.hero-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.hero-badge {
+  font-size: 0.75rem;
   font-weight: 700;
-  color: #1a1a2e;
+  text-transform: uppercase;
+  color: #4f46e5;
+  letter-spacing: 0.05em;
+  background: rgba(79, 70, 229, 0.08);
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+}
+
+.unit-badge {
+  font-size: 0.85rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.hero-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hero-label {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.hero-value {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+/* Breakdown Card */
+.breakdown-card {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.breakdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.breakdown-header h3 {
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.count-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #0284c7;
+  background: rgba(2, 132, 199, 0.1);
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+}
+
+.crime-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.85rem;
+}
+
+.crime-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.crime-card:hover {
+  transform: translateY(-2px);
+  border-color: #4f46e5;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.06);
+}
+
+.crime-name {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.crime-count {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0f172a;
 }

@@ -11,12 +11,22 @@ import pandas as pd
 from src.data_loader import load_dataset
 
 
-def get_national_frame() -> pd.DataFrame:
-    """Monthly national totals, indexed by month-start date with an explicit frequency."""
+def get_unit_frame(unit_name: str = "Total") -> pd.DataFrame:
+    """Monthly totals for a given unit (or 'Total' for national aggregate), indexed by month-start date."""
     df = load_dataset()
-    national = df[df["unit_name"] == "Total"].copy()
-    national["date"] = pd.to_datetime(
-        national["year"].astype(str) + "-" + national["month_number"].astype(str) + "-01"
+    unit_df = df[df["unit_name"] == unit_name].copy()
+    if unit_df.empty:
+        # Fallback to Total if unit_name is not found
+        unit_df = df[df["unit_name"] == "Total"].copy()
+
+    unit_df["date"] = pd.to_datetime(
+        unit_df["year"].astype(str) + "-" + unit_df["month_number"].astype(str) + "-01"
     )
-    national = national.sort_values("date").set_index("date")
-    return national.asfreq("MS")
+    unit_df = unit_df.sort_values("date").set_index("date")
+    return unit_df.asfreq("MS")
+
+
+def get_national_frame() -> pd.DataFrame:
+    """Monthly national totals wrapper for backward compatibility."""
+    return get_unit_frame("Total")
+

@@ -5,8 +5,8 @@ Implemented via SARIMAX with no exogenous inputs — statsmodels has no separate
 """
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
-ORDER = (1, 1, 1)
-SEASONAL_ORDER = (1, 1, 1, 12)
+ORDER = (0, 1, 1)
+SEASONAL_ORDER = (0, 1, 1, 12)
 
 
 def fit_forecast(train, horizon: int):

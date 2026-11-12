@@ -1,13 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Chart } from 'chart.js/auto';
 import {
   ApiService,
+  CustomRangeForecastResponse,
   ForecastPoint,
   ModelInfo,
   TimeSeriesTrainResponse,
 } from '../../services/api.service';
-import { formatModelName } from '../../shared/format';
+import { formatModelName, getMonthShortName, MONTH_OPTIONS } from '../../shared/format';
 
 @Component({
   selector: 'app-forecast',
@@ -15,74 +17,283 @@ import { formatModelName } from '../../shared/format';
   templateUrl: './forecast.component.html',
   styleUrl: './forecast.component.css',
 })
-export class ForecastComponent implements OnInit {
+export class ForecastComponent implements OnInit, OnDestroy {
+  @ViewChild('chartCanvas') chartCanvas?: ElementRef<HTMLCanvasElement>;
+
   readonly formatModelName = formatModelName;
+  readonly months = MONTH_OPTIONS;
 
   models: ModelInfo[] = [];
+  availableUnits: string[] = [];
+  selectedUnit = 'Total';
   selectedModel = '';
   testHorizon = 12;
-  forecastHorizon = 6;
 
-  training = false;
+  startYear = 2019;
+  startMonth = 1;
+  endYear = 2028;
+  endMonth = 12;
+
+  includeEvaluation = true;
   forecasting = false;
   error = '';
 
   trainResult: TimeSeriesTrainResponse | null = null;
-  forecastPoints: ForecastPoint[] | null = null;
+  customRangeResult: CustomRangeForecastResponse | null = null;
+
+  private chart?: Chart;
   private cacheBust = Date.now();
 
   constructor(private api: ApiService) {}
 
   ngOnInit(): void {
+    this.api.getOptions().subscribe({
+      next: (opt) => {
+        this.availableUnits = opt.unit_names.filter((u) => u !== 'Total');
+      },
+    });
+
     this.api.getTimeSeriesModels().subscribe({
       next: (models) => {
         this.models = models;
-        if (models.length) this.selectedModel = models[0].name;
+        if (models.length) {
+          this.selectedModel = models[0].name;
+          this.generateForecast();
+        }
       },
       error: () => (this.error = 'Could not reach the API. Is the backend running on port 8001?'),
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroyChart();
+  }
+
+  private destroyChart(): void {
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = undefined;
+    }
   }
 
   get forecastPlotUrl(): string {
     return this.api.forecastFigureUrl(this.selectedModel, this.cacheBust);
   }
 
-  trainAndEvaluate(): void {
+  validateStartYear(): void {
+    if (!this.startYear || this.startYear < 2019) {
+      this.startYear = 2019;
+    }
+  }
+
+  generateForecast(): void {
     if (!this.selectedModel) return;
-    this.training = true;
+    this.validateStartYear();
+    this.forecasting = true;
     this.error = '';
-    this.trainResult = null;
+    this.customRangeResult = null;
+
+    if (this.includeEvaluation) {
+      this.api
+        .trainTimeSeriesModel({
+          model_name: this.selectedModel,
+          unit_name: this.selectedUnit,
+          test_horizon: this.testHorizon,
+        })
+        .subscribe({
+          next: (res) => {
+            this.trainResult = res;
+          },
+          error: () => {
+            this.trainResult = null;
+          },
+        });
+    } else {
+      this.trainResult = null;
+    }
+
     this.api
-      .trainTimeSeriesModel({ model_name: this.selectedModel, test_horizon: this.testHorizon })
+      .forecastCustomRange({
+        model_name: this.selectedModel,
+        unit_name: this.selectedUnit,
+        start_year: this.startYear,
+        start_month: this.startMonth,
+        end_year: this.endYear,
+        end_month: this.endMonth,
+        test_horizon: this.testHorizon,
+        include_evaluation: this.includeEvaluation,
+      })
       .subscribe({
         next: (res) => {
-          this.trainResult = res;
+          this.customRangeResult = res;
           this.cacheBust = Date.now();
-          this.training = false;
+          this.forecasting = false;
+          setTimeout(() => this.renderChart(res), 50);
         },
         error: (err) => {
-          this.error = err?.error?.detail ?? 'Training failed.';
-          this.training = false;
+          this.error = err?.error?.detail ?? 'Custom range forecast failed.';
+          this.forecasting = false;
         },
       });
   }
 
-  forecast(): void {
-    if (!this.selectedModel) return;
-    this.forecasting = true;
-    this.error = '';
-    this.forecastPoints = null;
-    this.api
-      .forecastTimeSeries({ model_name: this.selectedModel, horizon: this.forecastHorizon })
-      .subscribe({
-        next: (res) => {
-          this.forecastPoints = res.forecast;
-          this.forecasting = false;
-        },
-        error: (err) => {
-          this.error = err?.error?.detail ?? 'Forecast failed.';
-          this.forecasting = false;
-        },
+  private renderChart(res: CustomRangeForecastResponse): void {
+    if (!this.chartCanvas) return;
+    this.destroyChart();
+
+    const historyDates = res.history.map((h) => h.date);
+    const holdoutDates = (res.holdout || []).map((h) => h.date);
+    const forecastDates = res.forecast.map((f) => f.date);
+    const allLabels = Array.from(new Set([...historyDates, ...holdoutDates, ...forecastDates])).sort();
+
+    const historyMap = new Map(res.history.map((h) => [h.date, h.value]));
+    const holdoutActualMap = new Map((res.holdout || []).map((h) => [h.date, h.actual]));
+    const holdoutPredMap = new Map((res.holdout || []).map((h) => [h.date, h.prediction]));
+    const forecastMap = new Map(res.forecast.map((f) => [f.date, f.prediction]));
+
+    const historyData = allLabels.map((d) => historyMap.get(d) ?? null);
+    const holdoutActualData = allLabels.map((d) => holdoutActualMap.get(d) ?? null);
+    const holdoutPredData = allLabels.map((d) => holdoutPredMap.get(d) ?? null);
+    const forecastData = allLabels.map((d) => forecastMap.get(d) ?? null);
+
+    const datasets: any[] = [
+      {
+        label: 'History (Training Data)',
+        data: historyData,
+        borderColor: '#1f77b4',
+        backgroundColor: 'rgba(31, 119, 180, 0.1)',
+        borderWidth: 2,
+        pointRadius: 3,
+        tension: 0.2,
+        fill: true,
+      },
+    ];
+
+    if (res.holdout && res.holdout.length > 0) {
+      datasets.push({
+        label: 'Holdout Actuals (Ground Truth)',
+        data: holdoutActualData,
+        borderColor: '#2ca02c',
+        backgroundColor: 'rgba(44, 160, 44, 0.12)',
+        borderWidth: 2.5,
+        pointRadius: 4,
+        tension: 0.2,
+        fill: false,
       });
+      datasets.push({
+        label: 'Holdout Predictions (Model Forecast)',
+        data: holdoutPredData,
+        borderColor: '#9467bd',
+        backgroundColor: 'rgba(148, 103, 189, 0.12)',
+        borderDash: [4, 4],
+        borderWidth: 2.5,
+        pointRadius: 5,
+        pointStyle: 'crossRot',
+        tension: 0.2,
+        fill: false,
+      });
+    }
+
+    if (res.forecast && res.forecast.length > 0) {
+      datasets.push({
+        label: 'Future Forecast',
+        data: forecastData,
+        borderColor: '#d62728',
+        backgroundColor: 'rgba(214, 39, 40, 0.1)',
+        borderDash: [6, 6],
+        borderWidth: 2.5,
+        pointRadius: 4,
+        pointStyle: 'rectRot',
+        tension: 0.2,
+        fill: true,
+      });
+    }
+
+    const formattedLabels = allLabels.map((d) => {
+      const parts = d.split('-');
+      if (parts.length === 2) {
+        const m = parseInt(parts[1], 10);
+        return `${getMonthShortName(m)} ${parts[0]}`;
+      }
+      return d;
+    });
+
+    const ctx = this.chartCanvas.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    this.chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: formattedLabels,
+        datasets: datasets,
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              color: '#0f172a',
+              font: {
+                weight: 'bold',
+              },
+            },
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const label = context.dataset.label || '';
+                const val = context.parsed.y;
+                if (val === null || val === undefined) return '';
+                return `${label}: ${Math.round(val).toLocaleString()}`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Month',
+              color: '#0f172a',
+              font: {
+                weight: 'bold',
+              },
+            },
+            ticks: {
+              color: '#334155',
+              maxRotation: 45,
+              autoSkip: true,
+              maxTicksLimit: 24,
+            },
+            grid: {
+              color: '#e2e8f0',
+            },
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Total Cases',
+              color: '#0f172a',
+              font: {
+                weight: 'bold',
+              },
+            },
+            ticks: {
+              color: '#334155',
+            },
+            grid: {
+              color: '#e2e8f0',
+            },
+            beginAtZero: false,
+          },
+        },
+      },
+    });
   }
 }
